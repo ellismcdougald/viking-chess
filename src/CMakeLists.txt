@@ -14,3 +14,6 @@ add_executable(main main.cpp Move.cpp)
 
 add_executable(move_tests tests/move_tests.cpp Move.cpp)
 target_link_libraries(move_tests PRIVATE Catch2::Catch2WithMain)
+
+add_executable(board_tests tests/board_tests.cpp Board.cpp)
+target_link_libraries(board_tests PRIVATE Catch2::Catch2WithMain)
