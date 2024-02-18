@@ -78,9 +78,9 @@ private:
   bitboard move_direction(bitboard position, Direction direction);
 
   // Lookup Tables:
-  std::map<bitboard, bitboard> pawn_single_pushes_lookups[2];
-  std::map<bitboard, bitboard> pawn_double_pushes_lookups[2];
-  std::map<bitboard, bitboard> pawn_attacks_lookups[2];
+  std::array<std::map<bitboard, bitboard>, 2> pawn_single_pushes_lookups;
+  std::array<std::map<bitboard, bitboard>, 2> pawn_double_pushes_lookups;
+  std::array<std::map<bitboard, bitboard>, 2> pawn_attacks_lookups;
   std::map<bitboard, bitboard> knight_moves_lookup;
   std::map<bitboard, bitboard> king_moves_lookup;
 
