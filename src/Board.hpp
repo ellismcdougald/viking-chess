@@ -8,6 +8,11 @@
 
 #include <stdint.h>
 #include <vector>
+#include <array>
+#include <map>
+
+#include "globals.hpp"
+#include "Move.hpp"
 
 typedef uint64_t bitboard;
 
@@ -46,9 +51,9 @@ public:
 private:
   Color turn_color; // color who has the current turn
   std::array<std::vector<Move>, 2> moves;
-  std::array<std::array<bool>, 2> can_castle; // index 0 is kingside, index 1 is queenside
-  std::array<std::array<bool>, 2> previous_can_castle; // index 0 is kingside, index 1 is queenside
-  std::array<std::array<bitboard, 6>> piece_bitboards; // COLOR, PIECE
+  std::array<std::array<bool, 2>, 2> can_castle; // index 0 is kingside, index 1 is queenside
+  std::array<std::array<bool, 2>, 2> previous_can_castle; // index 0 is kingside, index 1 is queenside
+  std::array<std::array<bitboard, 6>, 2> piece_bitboards; // COLOR, PIECE
 
   // Moves -- Called by execute_move, undo_move
   void move_piece(Piece piece, Color color, bitboard origin, bitboard destination);
@@ -70,6 +75,7 @@ private:
 
   // Helpers:
   Piece get_piece_from_index(int index);
+  bitboard move_direction(bitboard position, Direction direction);
 
   // Lookup Tables:
   std::map<bitboard, bitboard> pawn_single_pushes_lookups[2];
