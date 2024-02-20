@@ -45,8 +45,8 @@ public:
   bool is_position_attacked_by(bitboard position, Color color);
 
   // Moves:
-  void execute_move(Move &move);
-  void undo_move(Move &move);
+  void execute_move(Move &move, Color color);
+  void undo_move(Move &move, Color color);
   
 private:
   Color turn_color; // color who has the current turn
@@ -57,7 +57,9 @@ private:
 
   // Moves -- Called by execute_move, undo_move
   void move_piece(Piece piece, Color color, bitboard origin, bitboard destination);
+  void set_piece(Piece piece, Color color, bitboard position);
   void remove_piece(Piece piece, Color color, bitboard position);
+  void execute_castle_move(Color color, bitboard origin, bitboard destination);
 
   // Castling:
   void update_castle_rights(Move &move); // Called by execute_move
@@ -76,6 +78,7 @@ private:
   // Helpers:
   Piece get_piece_from_index(int index);
   bitboard move_direction(bitboard position, Direction direction);
+  Piece get_promotion_piece_from_flags(uint8_t flags);
 
   // Lookup Tables:
   std::array<std::map<bitboard, bitboard>, 2> pawn_single_pushes_lookups;
@@ -83,6 +86,8 @@ private:
   std::array<std::map<bitboard, bitboard>, 2> pawn_attacks_lookups;
   std::map<bitboard, bitboard> knight_moves_lookup;
   std::map<bitboard, bitboard> king_moves_lookup;
+  std::map<bitboard, bitboard> castle_rook_origin_lookup;
+  std::map<bitboard, bitboard> castle_rook_destination_lookup;
 
   void initialize_lookups(); // Called by constructor
   void initialize_single_pawn_pushes_lookups();
@@ -90,6 +95,8 @@ private:
   void initialize_pawn_attacks_lookups();
   void initialize_knight_moves_lookup();
   void initialize_king_moves_lookup();
+  void initialize_castle_rook_origin_lookup();
+  void initialize_castle_rook_destination_lookup();
 
   // Constants:
   static const bitboard FILE_A; //= 0x8080808080808080;
