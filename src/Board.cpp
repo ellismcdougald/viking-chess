@@ -2,6 +2,7 @@
 #define BOARD_CPP // GUARD
 
 #include "Board.hpp"
+#include "Move.hpp"
 
 // Constructor:
 Board::Board() {}
@@ -23,7 +24,15 @@ bitboard Board::get_all_piece_positions(Color color) {
   return result;
 }
 
-//Piece Board::get_piece_at_position(bitboard position, Color color) {}
+Piece Board::get_piece_at_position(bitboard position, Color color) {
+  std::array<Piece, 6> piece_array = {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
+  for(int i = 0; i < 6; i++) {
+    if(piece_bitboards[color][i] & position) {
+      return piece_array[i];
+    }
+  }
+  return NONE;
+}
 
 //Move Board::get_last_move(Color color) {}
 
@@ -53,8 +62,47 @@ void Board::set_can_castle_king(Color color, bool new_can_castle_king) {
 //bool Board::is_position_attacked_by(bitboard position, Color color) {}
 
 // Moves:
-//void Board::execute_move(Move &move) {}
-//void Board::undo_move(Move &move) {}
+/**
+ * Move cases:
+ * Quiet move: remove bit for origin, set bit for destination
+ * Capture move: remove bit for origin, remove bit for captured piece at destination, set bit at destination
+ * En passant: Remove bit for origin, remove bit for captured piece at its position, set bit at destination
+ * Promotion: Remove bit for original piece at origin, set bit for promotion piece at destination
+ */
+void Board::execute_move(Move &move, Color color) {
+  uint8_t move_flags = move.get_flags();
+  assert(move_flags != 6 && move_flags != 7);
+  bitboard origin = move.get_origin();
+  bitboard destination = move.get_destination();
+
+  Piece moving_piece = get_piece_at_position(origin, color);
+  
+  if(move_flags == 0 || move_flags == 1) { // Quiet move
+    move_piece(moving_piece, color, origin, destination);
+  } else if(move_flags == 2 || move_flags == 3) { // Castle move
+    execute_castle_move(color, origin, destination);
+  } else if(move_flags == 4) { // capture move
+    Piece captured_piece = get_piece_at_position(destination, color);
+    assert(captured_piece != NONE);
+    move_piece(moving_piece, color, origin, destination);
+    remove_piece(captured_piece, negate_color(color), destination);
+  } else if(move_flags == 5) { // en passant move
+    Piece captured_piece = get_piece_at_position(destination, color);
+    bitboard capture_square = (color == WHITE ? south(destination) : north(destination));
+    move_piece(moving_piece, color, origin, destination);
+    remove_piece(captured_piece, color, capture_square);
+  } else { // promotion  move
+    Piece promotion_piece = get_promotion_piece_from_flags(move_flags);
+    remove_piece(moving_piece, color, origin);
+    set_piece(promotion_piece, color, destination);
+    if(move_flags >= 12 && move_flags <= 15) {
+      Piece captured_piece = get_piece_at_position(destination, color);
+      remove_piece(captured_piece, color, destination);
+    }
+  }
+}
+
+//void Board::undo_move(Move &move, Color color) {}
 
 // Castling:
 //void Board::update_castle_rights(Move &move) {}
@@ -68,8 +116,22 @@ void Board::move_piece(Piece piece, Color color, bitboard origin, bitboard desti
   piece_bitboards[color][piece] ^= (origin | destination);
 }
 
+void Board::set_piece(Piece piece, Color color, bitboard position) {
+  assert((piece_bitboards[color][piece] & position) == 0);
+  piece_bitboards[color][piece] |= position;
+}
+
 void Board::remove_piece(Piece piece, Color color, bitboard position) {
+  assert(piece_bitboards[color][piece] & position);
   piece_bitboards[color][piece] &= ~position;
+}
+
+void Board::execute_castle_move(Color color, bitboard king_origin, bitboard king_destination) {
+  bitboard rook_origin = castle_rook_origin_lookup[king_destination];
+  bitboard rook_destination = castle_rook_destination_lookup[king_destination];
+
+  move_piece(KING, color, king_origin, king_destination);
+  move_piece(ROOK, color, rook_origin, rook_destination);
 }
 
 // Attacks:
@@ -132,6 +194,20 @@ bitboard Board::move_direction(bitboard position, Direction direction) {
   }
 }
 
+Piece Board::get_promotion_piece_from_flags(uint8_t flags) {
+  switch(flags) {
+  case 8: return KNIGHT;
+  case 9: return BISHOP;
+  case 10: return ROOK;
+  case 11: return QUEEN;
+  case 12: return KNIGHT;
+  case 13: return BISHOP;
+  case 14: return ROOK;
+  case 15: return QUEEN;
+  }
+  return NONE;
+}
+
 // Lookup Tables:
 void Board::initialize_lookups() { // Called by constructor
   initialize_single_pawn_pushes_lookups();
@@ -139,6 +215,8 @@ void Board::initialize_lookups() { // Called by constructor
   initialize_pawn_attacks_lookups();
   initialize_knight_moves_lookup();
   initialize_king_moves_lookup();
+  initialize_castle_rook_origin_lookup();
+  initialize_castle_rook_destination_lookup();
 }
 
 void Board::initialize_single_pawn_pushes_lookups() {
@@ -174,6 +252,21 @@ void Board::initialize_king_moves_lookup() {
   for(bitboard position = 1; position > 0; position <<= 1) {
     king_moves_lookup[position] = north(position) | east(position) | south(position) | west(position) | east(north(position)) | west(north(position)) | east(south(position)) | west(south(position));
   }
+}
+
+void Board::initialize_castle_rook_origin_lookup() {
+  castle_rook_origin_lookup[0x200000000000000] = 0x100000000000000;
+  castle_rook_origin_lookup[0x2000000000000000] = 0x8000000000000000;
+  castle_rook_origin_lookup[0x2] = 0x1;
+  castle_rook_origin_lookup[0x20] = 0x80;
+}
+
+void Board::initialize_castle_rook_destination_lookup() {
+  castle_rook_origin_lookup[0x200000000000000] = 0x400000000000000;
+  castle_rook_origin_lookup[0x2000000000000000] = 0x1000000000000000;
+  castle_rook_origin_lookup[0x2] = 0x4;
+  castle_rook_origin_lookup[020] = 0x1;
+
 }
 
 #endif
