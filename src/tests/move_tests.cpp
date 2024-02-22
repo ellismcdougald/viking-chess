@@ -4,6 +4,7 @@
 #include "iostream"
 #include <catch2/catch_test_macros.hpp>
 
+#include "../globals.hpp"
 #include "../Move.hpp"
 
 TEST_CASE("Testing move implementation on a1h8", "[move]") {
@@ -49,6 +50,5 @@ TEST_CASE("Testing move implementation on d4e5 capture", "[move]") {
     REQUIRE(actual == expected);
   }
 }
-
 
 #endif
