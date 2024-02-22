@@ -36,6 +36,7 @@ public:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);
   void set_can_castle_queen(Color color, bool new_can_castle_queen);
   void set_can_castle_king(Color color, bool new_can_castle_king);
+  void set_turn_color(Color new_turn_color);
 
   // Board logic:
   bool is_checked(Color color);
@@ -45,8 +46,8 @@ public:
   bool is_position_attacked_by(bitboard position, Color color);
 
   // Moves:
-  void execute_move(Move &move, Color color);
-  void undo_move(Move &move, Color color);
+  void execute_move(Move &move);
+  void undo_move(Move &move);
   
 private:
   Color turn_color; // color who has the current turn
@@ -59,7 +60,7 @@ private:
   void move_piece(Piece piece, Color color, bitboard origin, bitboard destination);
   void set_piece(Piece piece, Color color, bitboard position);
   void remove_piece(Piece piece, Color color, bitboard position);
-  void execute_castle_move(Color color, bitboard origin, bitboard destination);
+  void execute_castle_move(bitboard origin, bitboard destination);
 
   // Castling:
   void update_castle_rights(Move &move); // Called by execute_move

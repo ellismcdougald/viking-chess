@@ -5,7 +5,10 @@
 #include "Move.hpp"
 
 // Constructor:
-Board::Board() {}
+Board::Board() {
+  piece_bitboards = {};
+  turn_color = WHITE;
+}
 
 // Initializer:
 void Board::initialize_board_starting_position() {};
@@ -53,6 +56,10 @@ void Board::set_can_castle_king(Color color, bool new_can_castle_king) {
   can_castle[color][0] = new_can_castle_king;
 }
 
+void Board::set_turn_color(Color new_turn_color) {
+  turn_color = new_turn_color;
+}
+
 // Board Logic:
 //bool Board::is_checked(Color color) {}
 
@@ -69,35 +76,35 @@ void Board::set_can_castle_king(Color color, bool new_can_castle_king) {
  * En passant: Remove bit for origin, remove bit for captured piece at its position, set bit at destination
  * Promotion: Remove bit for original piece at origin, set bit for promotion piece at destination
  */
-void Board::execute_move(Move &move, Color color) {
+void Board::execute_move(Move &move) {
   uint8_t move_flags = move.get_flags();
   assert(move_flags != 6 && move_flags != 7);
   bitboard origin = move.get_origin();
   bitboard destination = move.get_destination();
 
-  Piece moving_piece = get_piece_at_position(origin, color);
+  Piece moving_piece = get_piece_at_position(origin, turn_color);
   
   if(move_flags == 0 || move_flags == 1) { // Quiet move
-    move_piece(moving_piece, color, origin, destination);
+    move_piece(moving_piece, turn_color, origin, destination);
   } else if(move_flags == 2 || move_flags == 3) { // Castle move
-    execute_castle_move(color, origin, destination);
+    execute_castle_move(origin, destination);
   } else if(move_flags == 4) { // capture move
-    Piece captured_piece = get_piece_at_position(destination, color);
+    Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
     assert(captured_piece != NONE);
-    move_piece(moving_piece, color, origin, destination);
-    remove_piece(captured_piece, negate_color(color), destination);
+    move_piece(moving_piece, turn_color, origin, destination);
+    remove_piece(captured_piece, negate_color(turn_color), destination);
   } else if(move_flags == 5) { // en passant move
-    Piece captured_piece = get_piece_at_position(destination, color);
-    bitboard capture_square = (color == WHITE ? south(destination) : north(destination));
-    move_piece(moving_piece, color, origin, destination);
-    remove_piece(captured_piece, color, capture_square);
+    Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
+    bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
+    move_piece(moving_piece, turn_color, origin, destination);
+    remove_piece(captured_piece, negate_color(turn_color), capture_square);
   } else { // promotion  move
     Piece promotion_piece = get_promotion_piece_from_flags(move_flags);
-    remove_piece(moving_piece, color, origin);
-    set_piece(promotion_piece, color, destination);
+    remove_piece(moving_piece, turn_color, origin);
+    set_piece(promotion_piece, turn_color, destination);
     if(move_flags >= 12 && move_flags <= 15) {
-      Piece captured_piece = get_piece_at_position(destination, color);
-      remove_piece(captured_piece, color, destination);
+      Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
+      remove_piece(captured_piece, negate_color(turn_color), destination);
     }
   }
 }
@@ -126,12 +133,12 @@ void Board::remove_piece(Piece piece, Color color, bitboard position) {
   piece_bitboards[color][piece] &= ~position;
 }
 
-void Board::execute_castle_move(Color color, bitboard king_origin, bitboard king_destination) {
+void Board::execute_castle_move(bitboard king_origin, bitboard king_destination) {
   bitboard rook_origin = castle_rook_origin_lookup[king_destination];
   bitboard rook_destination = castle_rook_destination_lookup[king_destination];
 
-  move_piece(KING, color, king_origin, king_destination);
-  move_piece(ROOK, color, rook_origin, rook_destination);
+  move_piece(KING, turn_color, king_origin, king_destination);
+  move_piece(ROOK, turn_color, rook_origin, rook_destination);
 }
 
 // Attacks:
