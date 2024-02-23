@@ -8,6 +8,7 @@
 Board::Board() {
   piece_bitboards = {};
   turn_color = WHITE;
+  initialize_lookups();
 }
 
 // Initializer:
@@ -269,11 +270,10 @@ void Board::initialize_castle_rook_origin_lookup() {
 }
 
 void Board::initialize_castle_rook_destination_lookup() {
-  castle_rook_origin_lookup[0x200000000000000] = 0x400000000000000;
-  castle_rook_origin_lookup[0x2000000000000000] = 0x1000000000000000;
-  castle_rook_origin_lookup[0x2] = 0x4;
-  castle_rook_origin_lookup[020] = 0x1;
-
+  castle_rook_destination_lookup[0x200000000000000] = 0x400000000000000;
+  castle_rook_destination_lookup[0x2000000000000000] = 0x1000000000000000;
+  castle_rook_destination_lookup[0x2] = 0x4;
+  castle_rook_destination_lookup[020] = 0x1;
 }
 
 #endif
