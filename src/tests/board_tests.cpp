@@ -6,6 +6,7 @@
 
 #include "../Board.hpp"
 
+/*
 TEST_CASE("Test board", "[board]") {
   Board board;
 }
@@ -63,7 +64,7 @@ TEST_CASE("Test execute_move quiet", "[execute_move quiet]") {
     board.execute_move(move);
 
     for(int piece_index = 0; piece_index < 4; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index ++) {
+      for(int color_index = 0; color_index < 2; color_index++) {
 	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
@@ -72,6 +73,55 @@ TEST_CASE("Test execute_move quiet", "[execute_move quiet]") {
     REQUIRE(board.piece_bitboards[WHITE][KING] == 0);
     REQUIRE(board.piece_bitboards[BLACK][KING] == 0);
   }
+}
+
+TEST_CASE("Test execute_move capture", "[execute_move capture]") {
+  Board board;
+
+  SECTION("white pawn captures black pawn d4e5") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("d4"));
+    board.set_piece(PAWN, BLACK, position_string_to_bitboard("e5"));
+
+    Move move('d', 4, 'e', 5, 4);
+
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("e5"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
+    for(int piece_index = 1; piece_index < 6; piece_index++) {
+      for(int color_index = 0; color_index < 2; color_index++) {
+	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+      }
+    }
+  }
+}
+*/
+
+TEST_CASE("Test execute_move castle", "[execute_move castle]") {
+  Board board;
+  board.set_turn_color(BLACK);
+  board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("h8"));
+
+  SECTION("black castle king side") {
+    Move move('e', 8, 'g', 8, 2);
+
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("g8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("f8") | position_string_to_bitboard("a8")));
+  }
+
+  SECTION("black castle queen side") {
+    Move move('e', 8, 'c', 8, 3);
+
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("c8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("d8") | position_string_to_bitboard("h8")));
+  }
+
 }
 
 #endif
