@@ -6,7 +6,7 @@
 
 #include "../Board.hpp"
 
-/*
+
 TEST_CASE("Test board", "[board]") {
   Board board;
 }
@@ -39,7 +39,7 @@ TEST_CASE("Test get_piece_at_posiiton", "[get_piece_at_position]") {
   }
 }
 
-TEST_CASE("Test execute_move quiet", "[execute_move quiet]") {
+TEST_CASE("Test execute_move and undo_move quiet", "[execute_move undo_move quiet]") {
   Board board;
 
   SECTION("white pawn quiet move d2 d4") {
@@ -48,6 +48,15 @@ TEST_CASE("Test execute_move quiet", "[execute_move quiet]") {
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d4"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
+    for(int piece_index = 1; piece_index < 6; piece_index++) {
+      for(int color_index = 0; color_index < 2; color_index ++) {
+	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+      }
+    }
+
+    board.undo_move(move);
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d2"));
     REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
     for(int piece_index = 1; piece_index < 6; piece_index++) {
       for(int color_index = 0; color_index < 2; color_index ++) {
@@ -70,6 +79,18 @@ TEST_CASE("Test execute_move quiet", "[execute_move quiet]") {
     }
     REQUIRE(board.piece_bitboards[WHITE][QUEEN] == 0);
     REQUIRE(board.piece_bitboards[BLACK][QUEEN] == position_string_to_bitboard("h8"));
+    REQUIRE(board.piece_bitboards[WHITE][KING] == 0);
+    REQUIRE(board.piece_bitboards[BLACK][KING] == 0);
+
+    board.undo_move(move);
+
+    for(int piece_index = 0; piece_index < 4; piece_index++) {
+      for(int color_index = 0; color_index < 2; color_index++) {
+	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+      }
+    }
+    REQUIRE(board.piece_bitboards[WHITE][QUEEN] == 0);
+    REQUIRE(board.piece_bitboards[BLACK][QUEEN] == position_string_to_bitboard("a1"));
     REQUIRE(board.piece_bitboards[WHITE][KING] == 0);
     REQUIRE(board.piece_bitboards[BLACK][KING] == 0);
   }
@@ -95,7 +116,6 @@ TEST_CASE("Test execute_move capture", "[execute_move capture]") {
     }
   }
 }
-*/
 
 TEST_CASE("Test execute_move castle", "[execute_move castle]") {
   Board board;
@@ -111,6 +131,11 @@ TEST_CASE("Test execute_move castle", "[execute_move castle]") {
 
     REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("g8"));
     REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("f8") | position_string_to_bitboard("a8")));
+
+    board.undo_move(move);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("h8") | position_string_to_bitboard("a8")));
   }
 
   SECTION("black castle queen side") {
@@ -120,6 +145,10 @@ TEST_CASE("Test execute_move castle", "[execute_move castle]") {
 
     REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("c8"));
     REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("d8") | position_string_to_bitboard("h8")));
+
+    board.undo_move(move);
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("h8")));
   }
 }
 

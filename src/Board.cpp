@@ -108,9 +108,35 @@ void Board::execute_move(Move &move) {
       remove_piece(captured_piece, negate_color(turn_color), destination);
     }
   }
+
+  // update castle rights
+  set_turn_color(negate_color(turn_color));
 }
 
-//void Board::undo_move(Move &move, Color color) {}
+// Opposite of execute_move
+void Board::undo_move(Move &move) {
+  set_turn_color(negate_color(turn_color));
+  // revert castle rights
+  
+  uint8_t move_flags = move.get_flags();
+  assert(move_flags != 6 && move_flags != 7);
+  bitboard origin = move.get_origin();
+  bitboard destination = move.get_destination();
+
+  Piece moved_piece = get_piece_at_position(destination, turn_color);
+
+  if(move_flags == 0 || move_flags == 1) { // Quiet move
+    move_piece(moved_piece, turn_color, destination, origin);
+  } else if(move_flags == 2 || move_flags == 3) { // Castle move
+    execute_castle_move(origin, destination);
+  } else if(move_flags == 4) { // capture move
+    // TODO
+  } else if(move_flags == 5) { // en passant move
+    // TODO
+  } else { // promotion move
+    // TODO
+  }
+}
 
 // Castling:
 //void Board::update_castle_rights(Move &move) {}
