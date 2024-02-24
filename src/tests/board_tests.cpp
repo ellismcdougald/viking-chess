@@ -121,7 +121,116 @@ TEST_CASE("Test execute_move castle", "[execute_move castle]") {
     REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("c8"));
     REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("d8") | position_string_to_bitboard("h8")));
   }
+}
 
+TEST_CASE("Test execute_move en passant") {
+  Board board;
+
+  SECTION("white en passant capture e5d6") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("e5"));
+    board.set_piece(PAWN, BLACK, position_string_to_bitboard("d5"));
+
+    Move move('e', 5, 'd', 6, 5);
+
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d6"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
+    for(int piece_index = 1; piece_index < 6; piece_index++) {
+      for(int color_index = 0; color_index < 2; color_index ++) {
+	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+      }
+    }
+  }
+}
+
+TEST_CASE("Test execute_move promotion") {
+  Board board;
+  board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
+
+  SECTION("no promotion (pawn promotion)") {
+    Move move('a', 7, 'a', 8, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a8"));
+  }
+
+  SECTION("knight promotion") {
+    Move move('a', 7, 'a', 8, 8);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][KNIGHT] == position_string_to_bitboard("a8"));
+  }
+
+  SECTION("bishop promotion") {
+    Move move('a', 7, 'a', 8, 9);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][BISHOP] == position_string_to_bitboard("a8"));
+  }
+
+  SECTION("rook promotion") {
+    Move move('a', 7, 'a', 8, 10);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] == position_string_to_bitboard("a8"));
+  }
+
+  SECTION("queen promotion") {
+    Move move('a', 7, 'a', 8, 11);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][QUEEN] == position_string_to_bitboard("a8"));
+  }
+}
+
+TEST_CASE("Test execute_move capture promotion") {
+  Board board;
+  board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
+  board.set_piece(KNIGHT, BLACK, position_string_to_bitboard("b8"));
+
+  SECTION("no promotion (pawn promotion") {
+    Move move('a', 7, 'b', 8, 4);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("b8"));
+  }
+
+  SECTION("knight promotion") {
+    Move move('a', 7, 'b', 8, 12);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][KNIGHT] == position_string_to_bitboard("b8"));
+  }
+
+  SECTION("bishop promotion") {
+    Move move('a', 7, 'b', 8, 13);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][BISHOP] == position_string_to_bitboard("b8"));
+  }
+
+  SECTION("rook promotion") {
+    Move move('a', 7, 'b', 8, 14);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] == position_string_to_bitboard("b8"));
+  }
+
+  SECTION("queen promotion") {
+    Move move('a', 7, 'b', 8, 15);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
+    REQUIRE(board.piece_bitboards[WHITE][QUEEN] == position_string_to_bitboard("b8"));
+  }
 }
 
 #endif
