@@ -95,8 +95,8 @@ void Board::execute_move(Move &move) {
     move_piece(moving_piece, turn_color, origin, destination);
     remove_piece(captured_piece, negate_color(turn_color), destination);
   } else if(move_flags == 5) { // en passant move
-    Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
     bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
+    Piece captured_piece = get_piece_at_position(capture_square, negate_color(turn_color));
     move_piece(moving_piece, turn_color, origin, destination);
     remove_piece(captured_piece, negate_color(turn_color), capture_square);
   } else { // promotion  move
