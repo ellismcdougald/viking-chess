@@ -52,6 +52,7 @@ public:
 private:
   Color turn_color; // color who has the current turn
   std::array<std::vector<Move>, 2> moves;
+  std::array<std::vector<Piece>, 2> captured_pieces;
   std::array<std::array<bool, 2>, 2> can_castle; // index 0 is kingside, index 1 is queenside
   std::array<std::array<bool, 2>, 2> previous_can_castle; // index 0 is kingside, index 1 is queenside
   std::array<std::array<bitboard, 6>, 2> piece_bitboards; // COLOR, PIECE
