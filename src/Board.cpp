@@ -94,9 +94,11 @@ void Board::execute_move(Move &move) {
     assert(captured_piece != NONE);
     move_piece(moving_piece, turn_color, origin, destination);
     remove_piece(captured_piece, negate_color(turn_color), destination);
+    captured_pieces[turn_color].push_back(captured_piece);
   } else if(move_flags == 5) { // en passant move
     bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
     Piece captured_piece = get_piece_at_position(capture_square, negate_color(turn_color));
+    captured_pieces[turn_color].push_back(captured_piece);
     move_piece(moving_piece, turn_color, origin, destination);
     remove_piece(captured_piece, negate_color(turn_color), capture_square);
   } else { // promotion  move
@@ -106,6 +108,7 @@ void Board::execute_move(Move &move) {
     if(move_flags >= 12 && move_flags <= 15) {
       Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
       remove_piece(captured_piece, negate_color(turn_color), destination);
+      captured_pieces[turn_color].push_back(captured_piece);
     }
   }
 
@@ -130,11 +133,29 @@ void Board::undo_move(Move &move) {
   } else if(move_flags == 2 || move_flags == 3) { // Castle move
     execute_castle_move(origin, destination);
   } else if(move_flags == 4) { // capture move
-    // TODO
+    assert(captured_pieces[turn_color].size() > 0);
+    Piece captured_piece = captured_pieces[turn_color].back();
+    captured_pieces[turn_color].pop_back();
+    move_piece(moved_piece, turn_color, destination, origin);
+    set_piece(captured_piece, negate_color(turn_color), destination);
   } else if(move_flags == 5) { // en passant move
-    // TODO
+    bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
+    assert(captured_pieces[turn_color].size() > 0);
+    Piece captured_piece = captured_pieces[turn_color].back();
+    captured_pieces[turn_color].pop_back();
+    move_piece(moved_piece, turn_color, destination, origin);
+    set_piece(captured_piece, negate_color(turn_color), capture_square);
   } else { // promotion move
-    // TODO
+    moved_piece = PAWN;
+    Piece promotion_piece = get_promotion_piece_from_flags(move_flags);
+    set_piece(moved_piece, turn_color, origin);
+    remove_piece(promotion_piece, turn_color, destination);
+    if(move_flags >= 12 && move_flags <= 15) {
+      assert(captured_pieces[turn_color].size() > 0);
+      Piece captured_piece = captured_pieces[turn_color].back();
+      captured_pieces[turn_color].pop_back();
+      set_piece(captured_piece, negate_color(turn_color), destination);
+    }
   }
 }
 

@@ -6,7 +6,6 @@
 
 #include "../Board.hpp"
 
-
 TEST_CASE("Test board", "[board]") {
   Board board;
 }
@@ -96,7 +95,7 @@ TEST_CASE("Test execute_move and undo_move quiet", "[execute_move undo_move quie
   }
 }
 
-TEST_CASE("Test execute_move capture", "[execute_move capture]") {
+TEST_CASE("Test execute_move and undo_move capture", "[execute_move undo_move capture]") {
   Board board;
 
   SECTION("white pawn captures black pawn d4e5") {
@@ -114,10 +113,14 @@ TEST_CASE("Test execute_move capture", "[execute_move capture]") {
 	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
+
+    board.undo_move(move);
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d4"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] == position_string_to_bitboard("e5"));
   }
 }
 
-TEST_CASE("Test execute_move castle", "[execute_move castle]") {
+TEST_CASE("Test execute_move and undo_move castle", "[execute_move undo_move castle]") {
   Board board;
   board.set_turn_color(BLACK);
   board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
@@ -152,7 +155,7 @@ TEST_CASE("Test execute_move castle", "[execute_move castle]") {
   }
 }
 
-TEST_CASE("Test execute_move en passant") {
+TEST_CASE("Test execute_move and undo_move en passant", "[execute_move undo_move en passant]") {
   Board board;
 
   SECTION("white en passant capture e5d6") {
@@ -170,18 +173,32 @@ TEST_CASE("Test execute_move en passant") {
 	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
+
+    board.undo_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("e5"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] == position_string_to_bitboard("d5"));
+
+    for(int piece_index = 1; piece_index < 6; piece_index++) {
+      for(int color_index = 0; color_index < 2; color_index ++) {
+	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+      }
+    }
   }
 }
 
-TEST_CASE("Test execute_move promotion") {
+TEST_CASE("Test execute_move and undo_move promotion", "[execute_move undo_move promotion]") {
   Board board;
   board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
 
+  
   SECTION("no promotion (pawn promotion)") {
     Move move('a', 7, 'a', 8, 0);
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a8"));
+
+    board.undo_move(move);
   }
 
   SECTION("knight promotion") {
@@ -190,6 +207,8 @@ TEST_CASE("Test execute_move promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][KNIGHT] == position_string_to_bitboard("a8"));
+
+    board.undo_move(move);
   }
 
   SECTION("bishop promotion") {
@@ -198,6 +217,8 @@ TEST_CASE("Test execute_move promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][BISHOP] == position_string_to_bitboard("a8"));
+
+    board.undo_move(move);
   }
 
   SECTION("rook promotion") {
@@ -206,6 +227,8 @@ TEST_CASE("Test execute_move promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][ROOK] == position_string_to_bitboard("a8"));
+
+    board.undo_move(move);
   }
 
   SECTION("queen promotion") {
@@ -214,10 +237,20 @@ TEST_CASE("Test execute_move promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][QUEEN] == position_string_to_bitboard("a8"));
+
+    board.undo_move(move);
+  }
+
+  REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a7"));
+  REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
+  for(int piece_index = 1; piece_index < 6; piece_index++) {
+    for(int color_index = 0; color_index < 2; color_index ++) {
+      REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    }
   }
 }
 
-TEST_CASE("Test execute_move capture promotion") {
+TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move capture promotion]") {
   Board board;
   board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
   board.set_piece(KNIGHT, BLACK, position_string_to_bitboard("b8"));
@@ -227,6 +260,8 @@ TEST_CASE("Test execute_move capture promotion") {
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("b8"));
+
+    board.undo_move(move);
   }
 
   SECTION("knight promotion") {
@@ -235,14 +270,19 @@ TEST_CASE("Test execute_move capture promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][KNIGHT] == position_string_to_bitboard("b8"));
+
+    board.undo_move(move);
   }
 
+  
   SECTION("bishop promotion") {
     Move move('a', 7, 'b', 8, 13);
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][BISHOP] == position_string_to_bitboard("b8"));
+
+    board.undo_move(move);
   }
 
   SECTION("rook promotion") {
@@ -251,6 +291,8 @@ TEST_CASE("Test execute_move capture promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][ROOK] == position_string_to_bitboard("b8"));
+
+    board.undo_move(move);
   }
 
   SECTION("queen promotion") {
@@ -259,7 +301,14 @@ TEST_CASE("Test execute_move capture promotion") {
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
     REQUIRE(board.piece_bitboards[WHITE][QUEEN] == position_string_to_bitboard("b8"));
+
+    board.undo_move(move);
   }
+
+  REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a7"));
+  REQUIRE(board.piece_bitboards[BLACK][KNIGHT] == position_string_to_bitboard("b8"));
+
+
 }
 
 #endif
