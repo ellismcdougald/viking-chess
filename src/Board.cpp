@@ -9,6 +9,8 @@ Board::Board() {
   piece_bitboards = {};
   turn_color = WHITE;
   initialize_lookups();
+  can_castle[WHITE] = {true, true};
+  can_castle[BLACK] = {true, true};
 }
 
 // Initializer:
@@ -84,6 +86,7 @@ void Board::execute_move(Move &move) {
   bitboard destination = move.get_destination();
 
   Piece moving_piece = get_piece_at_position(origin, turn_color);
+  update_castle_rights(move, moving_piece);
   
   if(move_flags == 0 || move_flags == 1) { // Quiet move
     move_piece(moving_piece, turn_color, origin, destination);
@@ -112,14 +115,14 @@ void Board::execute_move(Move &move) {
     }
   }
 
-  // update castle rights
+  // TODO update castle rights
   set_turn_color(negate_color(turn_color));
 }
 
 // Opposite of execute_move
 void Board::undo_move(Move &move) {
   set_turn_color(negate_color(turn_color));
-  // revert castle rights
+  // TODO revert castle rights
   
   uint8_t move_flags = move.get_flags();
   assert(move_flags != 6 && move_flags != 7);
@@ -127,6 +130,7 @@ void Board::undo_move(Move &move) {
   bitboard destination = move.get_destination();
 
   Piece moved_piece = get_piece_at_position(destination, turn_color);
+  revert_castle_rights(turn_color);
 
   if(move_flags == 0 || move_flags == 1) { // Quiet move
     move_piece(moved_piece, turn_color, destination, origin);
@@ -160,10 +164,16 @@ void Board::undo_move(Move &move) {
 }
 
 // Castling:
-//void Board::update_castle_rights(Move &move) {}
+void Board::update_castle_rights(Move &move, Piece moving_piece) {
+  previous_can_castle = can_castle;
+  if(moving_piece == KING) {
+    set_can_castle_king(turn_color, false);
+    set_can_castle_queen(turn_color, false);
+  }
+}
 
-void Board::revert_castle_rights(Move &move) {
-  can_castle = previous_can_castle;
+void Board::revert_castle_rights(Color color) {
+  can_castle[color] = previous_can_castle[color];
 }
 
 // Moves:
@@ -320,7 +330,7 @@ void Board::initialize_castle_rook_destination_lookup() {
   castle_rook_destination_lookup[0x200000000000000] = 0x400000000000000;
   castle_rook_destination_lookup[0x2000000000000000] = 0x1000000000000000;
   castle_rook_destination_lookup[0x2] = 0x4;
-  castle_rook_destination_lookup[020] = 0x1;
+  castle_rook_destination_lookup[0x20] = 0x10;
 }
 
 #endif
