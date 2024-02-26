@@ -64,8 +64,8 @@ private:
   void execute_castle_move(bitboard origin, bitboard destination);
 
   // Castling:
-  void update_castle_rights(Move &move); // Called by execute_move
-  void revert_castle_rights(Move &move); // Called by undo_move
+  void update_castle_rights(Move &move, Piece moving_piece); // Called by execute_move
+  void revert_castle_rights(Color color); // Called by undo_move
 
   // Attacks:
   bitboard get_pawn_attacks(bitboard position, Color color);
