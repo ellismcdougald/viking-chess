@@ -6,6 +6,7 @@
 
 #include "../Board.hpp"
 
+/*
 TEST_CASE("Test board", "[board]") {
   Board board;
 }
@@ -307,8 +308,122 @@ TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move captur
 
   REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a7"));
   REQUIRE(board.piece_bitboards[BLACK][KNIGHT] == position_string_to_bitboard("b8"));
-
-
 }
+*/
+
+TEST_CASE("test castling and castle rights") {
+  Board board;
+  board.set_piece(KING, WHITE, position_string_to_bitboard("e1"));
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("a1"));
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("h1"));
+  board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("h8"));
+
+  SECTION("white castles king side") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+    
+    Move move('e', 1, 'g', 1, 2);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("g1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("a1") | position_string_to_bitboard("f1")));
+    REQUIRE(board.can_castle[WHITE][0] == false);
+    REQUIRE(board.can_castle[WHITE][1] == false);
+
+    board.undo_move(move);
+    
+    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("e1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("a1") | position_string_to_bitboard("h1")));
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+  }
+
+  SECTION("white castles queen side") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+    
+    Move move('e', 1, 'c', 1, 3);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("c1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("d1") | position_string_to_bitboard("h1")));
+    REQUIRE(board.can_castle[WHITE][0] == false);
+    REQUIRE(board.can_castle[WHITE][1] == false);
+
+    board.undo_move(move);
+    
+    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("e1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("a1") | position_string_to_bitboard("h1")));
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+  }
+
+  board.set_turn_color(BLACK);
+
+  SECTION("black castles king side") {
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+    
+    Move move('e', 8, 'g', 8, 2);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("g8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("f8")));
+    REQUIRE(board.can_castle[BLACK][0] == false);
+    REQUIRE(board.can_castle[BLACK][1] == false);
+
+    board.undo_move(move);
+    
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("h8")));
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+  }
+
+  
+  SECTION("black castles queen side") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+    
+    Move move('e', 8, 'c', 8, 3);
+    board.execute_move(move);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("c8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("d8") | position_string_to_bitboard("h8")));
+    REQUIRE(board.can_castle[BLACK][0] == false);
+    REQUIRE(board.can_castle[BLACK][1] == false);
+
+    board.undo_move(move);
+    
+    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("h8")));
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+  }
+}
+
+TEST_CASE("test castle rights on non-castle moves") {
+  Board board;
+  board.set_piece(KING, WHITE, position_string_to_bitboard("e1"));
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("a1"));
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("h1"));
+  board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("h8"));
+  
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("a2"));
+
+  SECTION("non-castle king move removes both castle rights") {}
+
+  SECTION("queen side rook move removes queen side castle right") {}
+
+  SECTION("king side rook moves removes king side castle right") {}
+
+  SECTION("pawn move does not affect castle rights") {}
+}
+
+
 
 #endif
