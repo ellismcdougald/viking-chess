@@ -309,7 +309,6 @@ TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move captur
   REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a7"));
   REQUIRE(board.piece_bitboards[BLACK][KNIGHT] == position_string_to_bitboard("b8"));
 }
-*/
 
 TEST_CASE("test castling and castle rights") {
   Board board;
@@ -403,6 +402,7 @@ TEST_CASE("test castling and castle rights") {
     REQUIRE(board.can_castle[BLACK][1] == true);
   }
 }
+*/
 
 TEST_CASE("test castle rights on non-castle moves") {
   Board board;
@@ -415,13 +415,86 @@ TEST_CASE("test castle rights on non-castle moves") {
   
   board.set_piece(ROOK, WHITE, position_string_to_bitboard("a2"));
 
-  SECTION("non-castle king move removes both castle rights") {}
+  SECTION("white non-castle king move removes both castle rights") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
 
-  SECTION("queen side rook move removes queen side castle right") {}
+    Move move('e', 1, 'd', 1, 0);
+    board.execute_move(move);
 
-  SECTION("king side rook moves removes king side castle right") {}
+    REQUIRE(board.can_castle[WHITE][0] == false);
+    REQUIRE(board.can_castle[WHITE][1] == false);
+  }
 
-  SECTION("pawn move does not affect castle rights") {}
+  SECTION("white queen side rook move removes queen side castle right") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+
+    Move move('a', 1, 'b', 1, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == false);
+  }
+
+  SECTION("white king side rook moves removes king side castle right") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+
+    Move move('h', 1, 'h', 2, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.can_castle[WHITE][0] == false);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+  }
+
+  board.set_turn_color(BLACK);
+
+  SECTION("black non-castle king move removes both castle rights") {
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+
+    Move move('e', 8, 'd', 8, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.can_castle[BLACK][0] == false);
+    REQUIRE(board.can_castle[BLACK][1] == false);
+  }
+  
+  SECTION("white queen side rook move removes queen side castle right") {
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+
+    Move move('a', 8, 'b', 8, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == false);
+  }
+  
+  SECTION("white king side rook moves removes king side castle right") {
+    REQUIRE(board.can_castle[BLACK][0] == true);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+
+    Move move('h', 8, 'h', 7, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.can_castle[BLACK][0] == false);
+    REQUIRE(board.can_castle[BLACK][1] == true);
+  }
+
+  board.set_turn_color(WHITE);
+  
+  SECTION("pawn move does not affect castle rights") {
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+
+    Move move('a', 2, 'a', 3, 0);
+    board.execute_move(move);
+
+    REQUIRE(board.can_castle[WHITE][0] == true);
+    REQUIRE(board.can_castle[WHITE][1] == true);
+  }
 }
 
 

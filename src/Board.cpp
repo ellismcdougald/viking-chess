@@ -165,10 +165,17 @@ void Board::undo_move(Move &move) {
 
 // Castling:
 void Board::update_castle_rights(Move &move, Piece moving_piece) {
+  bitboard origin = move.get_origin();
   previous_can_castle = can_castle;
   if(moving_piece == KING) {
     set_can_castle_king(turn_color, false);
     set_can_castle_queen(turn_color, false);
+  } else if(moving_piece == ROOK) {
+    if((turn_color == WHITE && origin == 0x80) || (turn_color == BLACK && origin == 0x8000000000000000)) {
+      set_can_castle_queen(turn_color, false);
+    } else if((turn_color == WHITE && origin == 1) || (turn_color == BLACK && origin == 0x100000000000000)) {
+      set_can_castle_king(turn_color, false);
+    }
   }
 }
 
