@@ -40,11 +40,18 @@ Piece Board::get_piece_at_position(bitboard position, Color color) {
   return NONE;
 }
 
-//Move Board::get_last_move(Color color) {}
+Move Board::get_last_move(Color color) {
+  assert(moves[color].size() > 0);
+  return moves[color][moves[color].size() - 1];
+}
 
-//bool Board::get_can_castle_queen(Color color) {}
+bool Board::get_can_castle_queen(Color color) {
+  return can_castle[color][1];
+}
 
-//bool Board::get_can_castle_king(Color color) {}
+bool Board::get_can_castle_king(Color color) {
+  return can_castle[color][0];
+}
 
 // Setters:
 void Board::set_piece_positions(Piece piece, Color color, bitboard new_positions) {
@@ -69,7 +76,30 @@ void Board::set_turn_color(Color new_turn_color) {
 //bool Board::is_move_legal(Move &move, Color color) {}
 
 // Attacks:
-//bool Board::is_position_attacked_by(bitboard position, Color color) {}
+bool Board::is_position_attacked_by(bitboard position, Color color) {
+  std::array<Piece, 6> piece_array = {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
+  for(int piece_index = 0; piece_index < 6; piece_index++) {
+    if(get_piece_attacks(piece_array[piece_index], position, color) & get_piece_positions(piece_array[piece_index], color)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
+  assert(piece != NONE);
+  switch(piece) {
+  case PAWN: return get_pawn_attacks(position, color);
+  case KNIGHT: return get_knight_attacks(position);
+  case BISHOP: return get_bishop_attacks(position);
+  case ROOK: return get_rook_attacks(position);
+  case QUEEN: return get_queen_attacks(position);
+  case KING: return get_king_attacks(position);
+  case NONE: return 0;
+  }
+}
+
+
 
 // Moves:
 /**
