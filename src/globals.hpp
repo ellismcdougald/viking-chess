@@ -12,7 +12,7 @@ enum Color {WHITE, BLACK};
 enum Direction {NORTH, EAST, SOUTH, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST};
 
 static const bitboard FILE_A = 0x8080808080808080;
-static const bitboard FILE_H = 0x0808080808080808;
+static const bitboard FILE_H = 0x0101010101010101;
 static const bitboard RANK_1 = 0xFF;
 static const bitboard RANK_8 = 0xFF00000000000000;
 
