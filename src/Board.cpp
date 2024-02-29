@@ -71,15 +71,23 @@ void Board::set_turn_color(Color new_turn_color) {
 }
 
 // Board Logic:
-//bool Board::is_checked(Color color) {}
+bool Board::is_checked(Color color) {
+  bitboard king_position = get_piece_positions(KING, color);
+  return is_position_attacked_by(king_position, negate_color(color));
+}
 
-//bool Board::is_move_legal(Move &move, Color color) {}
+bool Board::is_move_legal(Move &move, Color color) {
+  execute_move(move);
+  bool is_legal = !is_checked(color);
+  undo_move(move);
+  return is_legal;
+}
 
 // Attacks:
 bool Board::is_position_attacked_by(bitboard position, Color color) {
   std::array<Piece, 6> piece_array = {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
   for(int piece_index = 0; piece_index < 6; piece_index++) {
-    if(get_piece_attacks(piece_array[piece_index], position, color) & get_piece_positions(piece_array[piece_index], color)) {
+    if(get_piece_attacks(piece_array[piece_index], position, negate_color(color)) & get_piece_positions(piece_array[piece_index], color)) {
       return true;
     }
   }
@@ -97,9 +105,8 @@ bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
   case KING: return get_king_attacks(position);
   case NONE: return 0;
   }
+  return 0;
 }
-
-
 
 // Moves:
 /**
@@ -272,10 +279,11 @@ bitboard Board::get_king_attacks(bitboard position) {
 bitboard Board::get_sliding_attacks(bitboard position, Direction direction) {
   assert((get_all_piece_positions(WHITE) & get_all_piece_positions(BLACK)) == 0);
   
-  bitboard other_pieces = get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK);
+  bitboard other_pieces = (get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK)) & ~position;
   bitboard result = 0;
   while((position & other_pieces) == 0) {
-    position = move_direction(position, direction);
+     position = move_direction(position, direction);
+    if(!position) break;
     result |= position;
   }
 
