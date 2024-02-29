@@ -6,7 +6,6 @@
 
 #include "../Board.hpp"
 
-/*
 TEST_CASE("Test board", "[board]") {
   Board board;
 }
@@ -402,7 +401,7 @@ TEST_CASE("test castling and castle rights") {
     REQUIRE(board.can_castle[BLACK][1] == true);
   }
 }
-*/
+
 
 TEST_CASE("test castle rights on non-castle moves") {
   Board board;
@@ -497,6 +496,123 @@ TEST_CASE("test castle rights on non-castle moves") {
   }
 }
 
+TEST_CASE("test is_position_attacked_by") {
+  Board board;
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("a1"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
 
+  SECTION("a8 is attacked by white") {
+    bool result = board.is_position_attacked_by(position_string_to_bitboard("a8"), WHITE);
+    bool expected = true;
+    REQUIRE(result == expected);
+  }
+
+  
+
+  SECTION("b8 is not attacked by white") {
+    bool result = board.is_position_attacked_by(position_string_to_bitboard("b8"), WHITE);
+    bool expected = false;
+    REQUIRE(result == expected);
+  }
+
+  SECTION("a1 is attacked by black") {
+    bool result = board.is_position_attacked_by(position_string_to_bitboard("a1"), BLACK);
+    bool expected = true;
+    REQUIRE(result == expected);
+  }
+
+  SECTION("b1 is not attacked by black") {
+    bool result = board.is_position_attacked_by(position_string_to_bitboard("b1"), BLACK);
+    bool expected = false;
+    REQUIRE(result == expected);
+  }
+  
+}
+
+TEST_CASE("test is_checked") {
+  Board board;
+
+  SECTION("white king attacked by rook") {
+    board.set_piece(KING, WHITE, position_string_to_bitboard("e1"));
+    board.set_piece(ROOK, BLACK, position_string_to_bitboard("e8"));
+    REQUIRE(board.is_checked(WHITE) == true);
+  }
+
+  SECTION("white king not attacked by rook") {
+    board.set_piece(KING, WHITE, position_string_to_bitboard("e1"));
+    board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
+    REQUIRE(board.is_checked(WHITE) == false);
+  }
+
+  SECTION("black king attacked by knight") {
+    board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
+    board.set_piece(KNIGHT, WHITE, position_string_to_bitboard("d6"));
+    REQUIRE(board.is_checked(BLACK) == true);
+  }
+
+  SECTION("black king not attacked by pawn") {
+    board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("e7"));
+    REQUIRE(board.is_checked(BLACK) == false);
+  }
+
+  SECTION("black king attacked by pawn") {
+    board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("d7"));
+    REQUIRE(board.is_checked(BLACK) == true);
+  }
+}
+
+TEST_CASE("test get_sliding_attacks") {
+  Board board;
+
+  SECTION("east works properly") {
+    bitboard actual = east(position_string_to_bitboard("h3"));
+    bitboard expected = 0;
+    REQUIRE(actual == expected);
+  }
+
+  SECTION("test northeast from f1") {
+    bitboard actual = board.get_sliding_attacks(position_string_to_bitboard("f1"), NORTHEAST);
+    bitboard expected = 0x10200;
+    REQUIRE(actual == expected);
+  }
+}
+
+
+TEST_CASE("test is_move_legal") {
+  Board board;
+  board.set_piece(KING, WHITE, position_string_to_bitboard("e1"));
+  board.set_piece(ROOK, WHITE, position_string_to_bitboard("h1"));
+  board.set_piece(PAWN, WHITE, position_string_to_bitboard("c3"));
+  board.set_piece(BISHOP, BLACK, position_string_to_bitboard("b4"));
+  board.set_piece(ROOK, BLACK, position_string_to_bitboard("d8"));
+
+  
+  SECTION("rook move legal") {
+    Move move('h', 1, 'h', 8, 0);
+    REQUIRE(board.is_move_legal(move, WHITE) == true);
+  }
+
+  SECTION("king move right legal") {
+    Move move('e', 1, 'f', 1, 0);
+    REQUIRE(board.is_move_legal(move, WHITE) == true);
+  }
+  
+  SECTION("king move left illegal") {
+    Move move('e', 1, 'd', 1, 0);
+    REQUIRE(board.is_move_legal(move, WHITE) == false);
+  }
+
+  SECTION("pawn push illegal") {
+    Move move('c', 3, 'c', 4, 0);
+    REQUIRE(board.is_move_legal(move, WHITE) == false);
+  }
+
+  SECTION("pawn capture legal") {
+    Move move('c', 3, 'b', 4, 4);
+    REQUIRE(board.is_move_legal(move, WHITE) == true);
+  }
+}
 
 #endif
