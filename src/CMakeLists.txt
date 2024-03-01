@@ -17,3 +17,6 @@ target_link_libraries(move_tests PRIVATE Catch2::Catch2WithMain)
 
 add_executable(board_tests tests/board_tests.cpp Board.cpp Move.cpp globals.cpp)
 target_link_libraries(board_tests PRIVATE Catch2::Catch2WithMain)
+
+add_executable(move_gen_tests tests/move_gen_tests.cpp MoveGenerator.cpp Board.cpp Move.cpp globals.cpp)
+target_link_libraries(move_gen_tests PRIVATE Catch2::Catch2WithMain)
