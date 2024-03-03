@@ -17,6 +17,17 @@ Move::Move(char origin_column, uint8_t origin_row, char dest_column, char dest_r
   set_flag(flag);
 }
 
+Move::Move(bitboard origin, bitboard destination, char flag) {
+  std::string origin_str = get_row_col_from_position(origin);
+  std::string dest_str = get_row_col_from_position(destination);
+
+  set_origin_column(origin_str[0]);
+  set_origin_row(origin_str[1] - '0');
+  set_dest_column(dest_str[0]);
+  set_dest_row(dest_str[1] - '0');
+  set_flag(flag);
+}
+
 // Getters:
 bitboard Move::get_origin() {
   uint8_t origin_row_int = (0x1C00 & move_rep) >> 10; // 0 - 7
@@ -86,6 +97,23 @@ bitboard Move::get_position_from_row_col(uint8_t row, uint8_t col) {
   }
   
   return position;
+}
+
+std::string Move::get_row_col_from_position(bitboard position) {
+  std::array<char, 8> letters = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+  std::string row_col = "00";
+  bitboard mask = 1;
+  for(int row = 0; row <= 7; row++) {
+    for(int col = 7; col >= 0; col--) {
+      if(mask & position) {
+	row_col[0] = col + 'a';
+	row_col[1] = row + '1';
+	return row_col;
+      }
+      mask <<= 1;
+    }
+  }
+  return "00";
 }
 
 #endif // GUARD

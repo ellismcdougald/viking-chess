@@ -6,6 +6,7 @@
 #define MOVE_HPP // GUARD
 
 #include <stdint.h>
+#include <string>
 
 typedef uint64_t bitboard;
 
@@ -45,6 +46,7 @@ public:
    * Should be given one of the 14 move flags depending on type of move.
    */
   Move(char origin_column, uint8_t origin_row, char dest_column, char dest_row, char flag);
+  Move(bitboard origin, bitboard destination, char flag);
 
   // Getters:
   bitboard get_origin();
@@ -66,6 +68,7 @@ private:
 
   // Helpers:
   bitboard get_position_from_row_col(uint8_t row, uint8_t col);
+  std::string get_row_col_from_position(bitboard position);
 };
 
 #endif
