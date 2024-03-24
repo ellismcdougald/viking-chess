@@ -84,6 +84,15 @@ void Move::print_binary(uint16_t move_rep) {
   std::cout << "\n";
 }
 
+void Move::print() {
+  std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination()) << "\n";
+}
+
+// Equality:
+bool Move::move_equals(Move &other_move) {
+  return move_rep == other_move.move_rep;
+}
+
 // Helpers:
 bitboard Move::get_position_from_row_col(uint8_t row, uint8_t col) {
   bitboard position = 1;

@@ -62,6 +62,10 @@ public:
 
   // Printers:
   void print_binary(uint16_t move_rep);
+  void print();
+
+  // Equality:
+  bool move_equals(Move &other_move);
   
 private:
   uint16_t move_rep;
