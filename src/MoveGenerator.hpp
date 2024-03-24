@@ -19,7 +19,7 @@ public:
 
   // Pseudo-legal moves:
   std::vector<Move> generate_pseudo_legal_moves(Board &board, Color color);
-  void add_pseudo_legal_pawn_moves(Board &board, Color color, std::vector<Move> moves);
+  void add_pseudo_legal_pawn_moves(Board &board, Color color, std::vector<Move> &moves);
   void add_pseudo_legal_knight_moves(Board &board, Color color, std::vector<Move> moves);
   void add_pseudo_legal_bishop_moves(Board &board, Color color, std::vector<Move> moves);
   void add_pseudo_legal_rook_moves(Board &board, Color color, std::vector<Move> moves);
@@ -34,6 +34,8 @@ public:
   void add_promotion_capture_moves(); // TODO: parameters
   void add_en_passant_moves(); // TODO: parameters
   void add_castle_moves(); // TODO: parameters
+
+  void add_moves(bitboard origin, bitboard all_destinations, char flag, std::vector<Move> &moves);
 };
 
 #endif
