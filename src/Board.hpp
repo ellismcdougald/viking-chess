@@ -45,6 +45,8 @@ public:
   // Attacks:
   bool is_position_attacked_by(bitboard position, Color color);
   bitboard get_piece_attacks(Piece piece, bitboard position, Color color);
+  bitboard get_pawn_single_push(bitboard position, Color color);
+  bitboard get_pawn_double_push(bitboard position, Color color);
 
   // Moves:
   void execute_move(Move &move);

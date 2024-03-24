@@ -108,6 +108,14 @@ bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
   return 0;
 }
 
+bitboard Board::get_pawn_single_push(bitboard position, Color color) {
+  return pawn_single_pushes_lookups[color][position];
+}
+
+bitboard Board::get_pawn_double_push(bitboard position, Color color) {
+  return pawn_double_pushes_lookups[color][position];
+}
+
 // Moves:
 /**
  * Move cases:
