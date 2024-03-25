@@ -73,6 +73,54 @@ TEST_CASE("test pawn move gneration") {
   }
 }
 
+TEST_CASE("test en passant generation") {
+  Board board;
+  MoveGenerator move_gen;
+
+  SECTION("no opportunity") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("d4"));
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("e4"));
+
+    std::vector<Move> ep_pseudo_legal_moves;
+    move_gen.add_pseudo_legal_en_passant_moves(board, WHITE, ep_pseudo_legal_moves);
+
+    REQUIRE(ep_pseudo_legal_moves.size() == 0);
+  }
+
+  SECTION("pawn beside but not preceded by double pawn push") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("d5"));
+    board.set_piece(PAWN, BLACK, position_string_to_bitboard("c6"));
+
+    board.set_turn_color(BLACK);
+    Move move('c', 6, 'c', 5, 0);
+    board.execute_move(move);
+
+    std::vector<Move> ep_pseudo_legal_moves;
+    move_gen.add_pseudo_legal_en_passant_moves(board, WHITE, ep_pseudo_legal_moves);
+
+    REQUIRE(ep_pseudo_legal_moves.size() == 0);
+  }
+
+  SECTION("ep opportunity") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("c2"));
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("e2"));
+    board.set_piece(PAWN, BLACK, position_string_to_bitboard("d5"));
+
+    Move move_one('c', 2, 'c', 4, 1);
+    board.execute_move(move_one);
+    Move move_two('d', 5, 'd', 4, 0);
+    board.execute_move(move_two);
+    Move move_three('e', 2, 'e', 4, 1);
+    board.execute_move(move_three);
+
+    std::vector<Move> ep_pseudo_legal_moves;
+    move_gen.add_pseudo_legal_en_passant_moves(board, BLACK, ep_pseudo_legal_moves);
+
+    REQUIRE(ep_pseudo_legal_moves.size() == 1);
+    Move exp_move('d', 4, 'e', 3, 5);
+    REQUIRE(move_vec_contains(ep_pseudo_legal_moves, exp_move));
+  }
+}
 
 // Helpers:
 bool move_vec_contains(std::vector<Move> &moves, Move &move) {
