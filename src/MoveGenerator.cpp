@@ -18,19 +18,36 @@ std::vector<Move> MoveGenerator::generate_pseudo_legal_moves(Board &board, Color
 
 // Needs update to consider promotion moves
 void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::vector<Move> &moves) {
+  bitboard promotion_file = color == WHITE ? RANK_8 : RANK_1;
+  
   bitboard moving_pawns = board.get_piece_positions(PAWN, color);
   bitboard other_pieces = board.get_all_piece_positions(color);
   bitboard opposing_pieces = board.get_all_piece_positions(negate_color(color));
-  bitboard current_position, capture_squares, single_push_squares, double_push_squares;
+  bitboard current_position, capture_squares, normal_capture_squares, promotion_capture_squares, single_push_squares, quiet_single_push_squares, promotion_push_squares, double_push_squares;
   for(bitboard mask = 1; mask > 0; mask <<= 1) {
     current_position = moving_pawns & mask;
     if(current_position) {
+      // Get single push destinations
       single_push_squares = board.get_pawn_single_push(current_position, color) & ~opposing_pieces & ~other_pieces;
-      add_moves(current_position, single_push_squares, 0, moves);
+      // Add quiet single push moves
+      quiet_single_push_squares = single_push_squares & ~promotion_file;
+      add_moves(current_position, quiet_single_push_squares, 0, moves);
+      // Add promotion single push moves
+      promotion_push_squares = single_push_squares & promotion_file;
+      // TODO: add promotion moves
+
+      // Add double push moves
       double_push_squares = board.get_pawn_double_push(current_position, color) & ~opposing_pieces & ~other_pieces;
       add_moves(current_position, double_push_squares, 1, moves);
+
+      // Get capture destinations
       capture_squares = board.get_piece_attacks(PAWN, current_position, color) & opposing_pieces;
-      add_moves(current_position, capture_squares, 4, moves);
+      // Add normal capture moves
+      normal_capture_squares = capture_squares & ~promotion_file;
+      add_moves(current_position, normal_capture_squares, 4, moves);
+      // Add promotion capture moves
+      promotion_capture_squares = capture_squares & promotion_file;
+      // TODO: add promotion moves
     }
   }
 }
