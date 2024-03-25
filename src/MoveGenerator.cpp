@@ -53,6 +53,34 @@ void MoveGenerator::add_pseudo_legal_piece_moves(Board &board, Color color, Piec
   }
 }
 
+void MoveGenerator::add_pseudo_legal_en_passant_moves(Board &board, Color color, std::vector<Move> &moves) {
+  Color other_color = negate_color(color);
+  
+  if(board.is_moves_empty(other_color)) return;
+
+  Move last_move = board.get_last_move(other_color);
+  if(!last_move.is_double_pawn_push()) return;
+
+  bitboard vulnerable_pawn = last_move.get_destination();
+  bitboard attack_pawns = board.get_piece_positions(PAWN, color) & (west(vulnerable_pawn) | east(vulnerable_pawn));
+  
+  bitboard destination_square;
+  if(color == WHITE) {
+    destination_square = north(vulnerable_pawn);
+  } else {
+    destination_square = south(vulnerable_pawn);
+  }
+
+  bitboard origin_square;
+  for(bitboard mask = 1; mask > 0; mask <<= 1) {
+    origin_square = attack_pawns & mask;
+    if(origin_square) {
+      Move move(origin_square, destination_square, 5);
+      moves.push_back(move);
+    }
+  }
+}
+
 void MoveGenerator::add_moves(bitboard origin, bitboard all_destinations, char flag, std::vector<Move> &moves) {
   bitboard current_destination;
   for(bitboard mask = 1; mask > 0; mask <<= 1) {

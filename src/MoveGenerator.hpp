@@ -26,6 +26,7 @@ public:
   void add_pseudo_legal_queen_moves(Board &board, Color color, std::vector<Move> moves);
   void add_pseudo_legal_king_moves(Board &board, Color color, std::vector<Move> moves);
   void add_pseudo_legal_piece_moves(Board &board, Color color, Piece piece, std::vector<Move> &moves);
+  void add_pseudo_legal_en_passant_moves(Board &board, Color color, std::vector<Move> &moves);
 
   // Move types:
   void add_quiet_moves(); // TODO: parameters
