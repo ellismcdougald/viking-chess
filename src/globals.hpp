@@ -14,7 +14,10 @@ enum Direction {NORTH, EAST, SOUTH, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTH
 static const bitboard FILE_A = 0x8080808080808080;
 static const bitboard FILE_H = 0x0101010101010101;
 static const bitboard RANK_1 = 0xFF;
+static const bitboard RANK_2 = 0x00FF;
+static const bitboard RANK_7 = 0x00FF000000000000;
 static const bitboard RANK_8 = 0xFF00000000000000;
+
 
 inline bitboard north(bitboard position) { return (position & ~RANK_8) << 8; }
 inline bitboard south(bitboard position) { return (position & ~RANK_1) >> 8; }
