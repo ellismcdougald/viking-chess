@@ -29,6 +29,7 @@ public:
   bitboard get_all_piece_positions(Color color);
   Piece get_piece_at_position(bitboard position, Color color);
   Move get_last_move(Color color);
+  bool is_moves_empty(Color color);
   bool get_can_castle_queen(Color color);
   bool get_can_castle_king(Color color);
 

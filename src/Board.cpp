@@ -45,6 +45,10 @@ Move Board::get_last_move(Color color) {
   return moves[color][moves[color].size() - 1];
 }
 
+bool Board::is_moves_empty(Color color) {
+  return moves[color].size() == 0;
+}
+
 bool Board::get_can_castle_queen(Color color) {
   return can_castle[color][1];
 }
@@ -160,14 +164,14 @@ void Board::execute_move(Move &move) {
     }
   }
 
-  // TODO update castle rights
+  moves[turn_color].push_back(move);
+
   set_turn_color(negate_color(turn_color));
 }
 
 // Opposite of execute_move
 void Board::undo_move(Move &move) {
   set_turn_color(negate_color(turn_color));
-  // TODO revert castle rights
   
   uint8_t move_flags = move.get_flags();
   assert(move_flags != 6 && move_flags != 7);
@@ -206,6 +210,8 @@ void Board::undo_move(Move &move) {
       set_piece(captured_piece, negate_color(turn_color), destination);
     }
   }
+
+  moves[turn_color].pop_back();
 }
 
 // Castling:
