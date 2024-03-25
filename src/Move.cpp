@@ -47,6 +47,10 @@ bitboard Move::get_flags() {
   return move_rep & 0xF;
 }
 
+bool Move::is_double_pawn_push() {
+  return get_flags() == 1;
+}
+
 // Setters:
 void Move::set_origin_column(char origin_column) {
   char col_rep = origin_column - 97;
