@@ -122,6 +122,40 @@ TEST_CASE("test en passant generation") {
   }
 }
 
+TEST_CASE("test promotion moves") {
+  Board board;
+  MoveGenerator move_gen;
+
+  SECTION("single pawn push promotion") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
+
+    std::vector<Move> pawn_pseudo_legal_moves;
+    move_gen.add_pseudo_legal_pawn_moves(board, WHITE, pawn_pseudo_legal_moves);
+
+    REQUIRE(pawn_pseudo_legal_moves.size() == 5);
+    Move move_one('a', 7, 'a', 8, 0);
+    REQUIRE(move_vec_contains(pawn_pseudo_legal_moves, move_one));
+    Move move_two('a', 7, 'a', 8, 8);
+    REQUIRE(move_vec_contains(pawn_pseudo_legal_moves, move_two));
+    Move move_three('a', 7, 'a', 8, 9);
+    REQUIRE(move_vec_contains(pawn_pseudo_legal_moves, move_three));
+    Move move_four('a', 7, 'a', 8, 10);
+    REQUIRE(move_vec_contains(pawn_pseudo_legal_moves, move_four));
+    Move move_five('a', 7, 'a', 8, 11);
+    REQUIRE(move_vec_contains(pawn_pseudo_legal_moves, move_five));
+  }
+
+  SECTION("capture pawn promotion") {
+    board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
+    board.set_piece(ROOK, BLACK, position_string_to_bitboard("b8"));
+
+    std::vector<Move> pawn_pseudo_legal_moves;
+    move_gen.add_pseudo_legal_pawn_moves(board, WHITE, pawn_pseudo_legal_moves);
+
+    REQUIRE(pawn_pseudo_legal_moves.size() == 10);
+  }
+}
+
 // Helpers:
 bool move_vec_contains(std::vector<Move> &moves, Move &move) {
   for(auto & element : moves) {
