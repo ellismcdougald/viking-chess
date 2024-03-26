@@ -34,7 +34,7 @@ void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::
       add_moves(current_position, quiet_single_push_squares, 0, moves);
       // Add promotion single push moves
       promotion_push_squares = single_push_squares & promotion_file;
-      // TODO: add promotion moves
+      add_promotion_moves(current_position, promotion_push_squares, false, moves);
 
       // Add double push moves
       double_push_squares = board.get_pawn_double_push(current_position, color) & ~opposing_pieces & ~other_pieces;
@@ -47,7 +47,7 @@ void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::
       add_moves(current_position, normal_capture_squares, 4, moves);
       // Add promotion capture moves
       promotion_capture_squares = capture_squares & promotion_file;
-      // TODO: add promotion moves
+      add_promotion_moves(current_position, promotion_capture_squares, true, moves);
     }
   }
 }
@@ -105,6 +105,22 @@ void MoveGenerator::add_moves(bitboard origin, bitboard all_destinations, char f
     if(current_destination) {
       Move move(origin, current_destination, flag);
       moves.push_back(move);
+    }
+  }
+}
+
+void MoveGenerator::add_promotion_moves(bitboard origin, bitboard all_destinations, bool capture, std::vector<Move> &moves) {
+  int start_flag = capture ? 12 : 8;
+  bitboard current_destination;
+  for(bitboard mask = 1; mask > 0; mask <<= 1) {
+    current_destination = all_destinations & mask;
+    if(current_destination) {
+      Move move(origin, current_destination, 0);
+      moves.push_back(move);
+      for(int i = 0; i < 4; i++) {
+	Move move(origin, current_destination, start_flag + i);
+	moves.push_back(move);
+      }
     }
   }
 }

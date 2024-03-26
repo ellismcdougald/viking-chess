@@ -38,6 +38,7 @@ public:
   void add_castle_moves(); // TODO: parameters
 
   void add_moves(bitboard origin, bitboard all_destinations, char flag, std::vector<Move> &moves);
+  void add_promotion_moves(bitboard origin, bitboard all_destinations, bool capture, std::vector<Move> &moves);
 };
 
 #endif
