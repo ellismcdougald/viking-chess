@@ -98,6 +98,59 @@ void MoveGenerator::add_pseudo_legal_en_passant_moves(Board &board, Color color,
   }
 }
 
+void MoveGenerator::add_legal_castle_moves(Board &board, Color color, std::vector<Move> &moves) {
+  add_legal_kingside_castle_move(board, color, moves);
+  add_legal_queenside_castle_move(board, color, moves);
+}
+
+void MoveGenerator::add_legal_kingside_castle_move(Board &board, Color color, std::vector<Move> &moves) {
+  // if color has no castle rights, don't add move
+  if(!board.get_can_castle_king(color)) return;
+  
+  bitboard king_position = (color == WHITE ? 0x8 : 0x800000000000000);
+  bitboard king_side_rook_position = (color == WHITE ? 0x1 : 0x100000000000000);
+  bitboard king_side_castle_path = (color == WHITE ? WHITE_KINGSIDE_CASTLE_PATH : BLACK_KINGSIDE_CASTLE_PATH);
+  
+  // if castle is blocked, don't add move
+  bitboard other_pieces = board.get_all_piece_positions(color) & ~king_position & ~king_side_rook_position;
+  if(king_side_castle_path & other_pieces) return;
+
+  // if castle path is attacked, don't add move
+  bitboard current_position;
+  for(bitboard mask = 1; mask > 0; mask <<= 1) {
+    current_position = king_side_castle_path & mask;
+    if(current_position && board.is_position_attacked_by(current_position, negate_color(color))) return;
+  }
+
+  // otherwise, add move
+  Move king_side_castle_move(king_position, king_side_rook_position, 2);
+  moves.push_back(king_side_castle_move);
+}
+
+void MoveGenerator::add_legal_queenside_castle_move(Board &board, Color color, std::vector<Move> &moves) {
+  // if color has no castle rights, don't add move
+  if(!board.get_can_castle_queen(color)) return;
+  
+  bitboard king_position = (color == WHITE ? 0x8 : 0x800000000000000);
+  bitboard queen_side_rook_position = (color == WHITE ? 0x80 : 0x8000000000000000);
+  bitboard queen_side_castle_path = (color == WHITE ? WHITE_QUEENSIDE_CASTLE_PATH : BLACK_QUEENSIDE_CASTLE_PATH);
+  
+  // if castle is blocked, don't add move
+  bitboard other_pieces = board.get_all_piece_positions(color) & ~king_position & ~queen_side_rook_position;
+  if(queen_side_castle_path & other_pieces) return;
+
+  // if castle path is attacked, don't add move
+  bitboard current_position;
+  for(bitboard mask = 1; mask > 0; mask <<= 1) {
+    current_position = queen_side_castle_path & mask;
+    if(current_position && board.is_position_attacked_by(current_position, negate_color(color))) return;
+  }
+
+  // otherwise, add move
+  Move queen_side_castle_move(king_position, queen_side_rook_position, 2);
+  moves.push_back(queen_side_castle_move);
+}
+
 void MoveGenerator::add_moves(bitboard origin, bitboard all_destinations, char flag, std::vector<Move> &moves) {
   bitboard current_destination;
   for(bitboard mask = 1; mask > 0; mask <<= 1) {

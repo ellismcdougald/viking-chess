@@ -28,6 +28,10 @@ public:
   void add_pseudo_legal_piece_moves(Board &board, Color color, Piece piece, std::vector<Move> &moves);
   void add_pseudo_legal_en_passant_moves(Board &board, Color color, std::vector<Move> &moves);
 
+  void add_legal_castle_moves(Board &board, Color color, std::vector<Move> &moves);
+  void add_legal_kingside_castle_move(Board &board, Color color, std::vector<Move> &moves);
+  void add_legal_queenside_castle_move(Board &board, Color color, std::vector<Move> &moves);
+
   // Move types:
   void add_quiet_moves(); // TODO: parameters
   void add_double_pawn_push_moves(); // TODO: parameters
