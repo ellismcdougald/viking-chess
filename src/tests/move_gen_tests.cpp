@@ -156,6 +156,22 @@ TEST_CASE("test promotion moves") {
   }
 }
 
+TEST_CASE("test castle moves") {
+  Board board;
+  MoveGenerator move_gen;
+
+  SECTION("king and two rooks") {
+    board.set_piece(KING, WHITE, 0x8);
+    board.set_piece(ROOK, WHITE, 1);
+    board.set_piece(ROOK, WHITE, 0x80);
+
+    std::vector<Move> castle_moves;
+    move_gen.add_legal_castle_moves(board, WHITE, castle_moves);
+
+    REQUIRE(castle_moves.size() == 2);
+  }
+}
+
 // Helpers:
 bool move_vec_contains(std::vector<Move> &moves, Move &move) {
   for(auto & element : moves) {
