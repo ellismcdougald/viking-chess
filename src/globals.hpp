@@ -23,6 +23,20 @@ static const bitboard WHITE_QUEENSIDE_CASTLE_PATH = 0xF80;
 static const bitboard BLACK_KINGSIDE_CASTLE_PATH = 0xF00000000000000;
 static const bitboard BLACK_QUEENSIDE_CASTLE_PATH = 0xF800000000000000;
 
+static const bitboard starting_white_king_position = 0x8;
+static const bitboard starting_white_queen_position = 0x10;
+static const bitboard starting_white_rook_position = 0x81;
+static const bitboard starting_white_bishop_position = 0x24;
+static const bitboard starting_white_knight_position = 0x42;
+static const bitboard starting_white_pawn_position = 0xFF00;
+
+static const bitboard starting_black_king_position = 0x800000000000000;
+static const bitboard starting_black_queen_position = 0x1000000000000000;
+static const bitboard starting_black_rook_position = 0x8100000000000000;
+static const bitboard starting_black_bishop_position = 0x2400000000000000;
+static const bitboard starting_black_knight_position = 0x4200000000000000;
+static const bitboard starting_black_pawn_position = 0x00FF000000000000;
+
 inline bitboard north(bitboard position) { return (position & ~RANK_8) << 8; }
 inline bitboard south(bitboard position) { return (position & ~RANK_1) >> 8; }
 inline bitboard east(bitboard position) { return (position & ~FILE_H) >> 1; }
