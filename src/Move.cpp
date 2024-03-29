@@ -89,7 +89,11 @@ void Move::print_binary(uint16_t move_rep) {
 }
 
 void Move::print() {
-  std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination()) << "\n";
+  std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination());
+}
+
+void Move::print_full() {
+  std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination()) << " -- " << get_flags() << "\n";
 }
 
 // Equality:
