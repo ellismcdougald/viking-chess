@@ -5,6 +5,21 @@
 
 MoveGenerator::MoveGenerator() {}
 
+std::vector<Move> MoveGenerator::generate_legal_moves(Board &board, Color color) {
+  std::vector<Move> legal_moves;
+  
+  std::vector<Move> pseudo_legal_moves = generate_pseudo_legal_moves(board, color);
+  for(Move &move : pseudo_legal_moves) {
+    if(board.is_move_legal(move, color)) {
+      legal_moves.push_back(move);
+    }
+  }
+
+  add_legal_castle_moves(board, color, legal_moves);
+
+  return legal_moves;
+}
+
 std::vector<Move> MoveGenerator::generate_pseudo_legal_moves(Board &board, Color color) {
   std::vector<Move> pseudo_legal_moves;
   add_pseudo_legal_pawn_moves(board, color, pseudo_legal_moves);
@@ -50,6 +65,8 @@ void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::
       add_promotion_moves(current_position, promotion_capture_squares, true, moves);
     }
   }
+
+  add_pseudo_legal_en_passant_moves(board, color, moves);
 }
 
 void MoveGenerator::add_pseudo_legal_piece_moves(Board &board, Color color, Piece piece, std::vector<Move> &moves) {
@@ -65,7 +82,7 @@ void MoveGenerator::add_pseudo_legal_piece_moves(Board &board, Color color, Piec
       quiet_squares = destination_squares & ~opposing_pieces;
       add_moves(current_position, quiet_squares, 0, moves);
       capture_squares = destination_squares & opposing_pieces;
-      add_moves(current_position, quiet_squares, 4, moves);
+      add_moves(current_position, capture_squares, 4, moves);
     }
   }
 }
@@ -176,6 +193,73 @@ void MoveGenerator::add_promotion_moves(bitboard origin, bitboard all_destinatio
       }
     }
   }
+}
+
+uint64_t MoveGenerator::perft(int depth, Board &board, Color color) {
+  uint64_t nodes = 0;
+
+  if(depth == 0) return 1;
+
+  std::vector<Move> legal_moves = generate_legal_moves(board, color);
+  int n_moves = legal_moves.size();
+
+  for(int i = 0; i < n_moves; i++) {
+    board.execute_move(legal_moves[i]);
+    nodes += perft(depth - 1, board, negate_color(color));
+    board.undo_move(legal_moves[i]);
+  }
+    
+  return nodes;
+}
+
+std::array<uint64_t, 3> MoveGenerator::detailed_perft(int depth, Board &board, Color color) {
+  uint64_t nodes = 0;
+  std::array<uint64_t, 3> results = {1, 1, 1};
+
+  if(depth == 0) return results;
+
+  results = {0, 0, 0};
+
+  uint64_t quiet_moves = 0;
+  uint64_t capture_moves = 0;
+
+  std::vector<Move> legal_moves = generate_legal_moves(board, color);
+  int n_moves = legal_moves.size();
+
+  for(int i = 0; i < n_moves; i++) {
+    board.execute_move(legal_moves[i]);
+    results[0] += detailed_perft(depth - 1, board, negate_color(color))[0];
+    if(legal_moves[i].get_flags() == 0 || legal_moves[i].get_flags() == 1)
+      results[1] += detailed_perft(depth - 1, board, negate_color(color))[1];
+    if(legal_moves[i].get_flags() == 4)
+      results[2] += detailed_perft(depth - 1, board, negate_color(color))[2];
+    board.undo_move(legal_moves[i]);
+  }
+    
+  return results;
+}
+
+uint64_t MoveGenerator::divide(int depth, Board &board, Color color) {
+  if(depth == 0) {
+    return 1;
+  }
+  std::vector<Move> legal_moves = generate_legal_moves(board, color);
+  uint64_t num_moves = legal_moves.size();
+
+  uint64_t nodes, node_total;
+  node_total = 0;
+  for(uint64_t i = 0; i < num_moves; i++) {
+    board.execute_move(legal_moves[i]);
+    nodes = perft(depth - 1, board, negate_color(color));
+    legal_moves[i].print();
+    std::cout << ": " << nodes << "\n";
+    node_total += nodes;
+    board.undo_move(legal_moves[i]);
+  }
+
+  std::cout << "Total Nodes: " << node_total << "\n";
+  std::cout << "Total Moves: " << num_moves << "\n";
+  return node_total;
 }
 
 #endif
