@@ -3,6 +3,7 @@
 
 #include "Board.hpp"
 #include "Move.hpp"
+#include "globals.hpp"
 
 // Constructor:
 Board::Board() {
@@ -14,7 +15,21 @@ Board::Board() {
 }
 
 // Initializer:
-void Board::initialize_board_starting_position() {};
+void Board::initialize_board_starting_position() {
+  piece_bitboards[WHITE][PAWN] = starting_white_pawn_position;
+  piece_bitboards[WHITE][KNIGHT] = starting_white_knight_position;
+  piece_bitboards[WHITE][BISHOP] = starting_white_bishop_position;
+  piece_bitboards[WHITE][ROOK] = starting_white_rook_position;
+  piece_bitboards[WHITE][QUEEN] = starting_white_queen_position;
+  piece_bitboards[WHITE][KING] = starting_white_king_position;
+
+  piece_bitboards[BLACK][PAWN] = starting_black_pawn_position;
+  piece_bitboards[BLACK][KNIGHT] = starting_black_knight_position;
+  piece_bitboards[BLACK][BISHOP] = starting_black_bishop_position;
+  piece_bitboards[BLACK][ROOK] = starting_black_rook_position;
+  piece_bitboards[BLACK][QUEEN] = starting_black_queen_position;
+  piece_bitboards[BLACK][KING] = starting_black_king_position;
+};
 
 // Getters:
 bitboard Board::get_piece_positions(Piece piece, Color color) {

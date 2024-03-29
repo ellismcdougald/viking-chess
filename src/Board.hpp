@@ -110,6 +110,7 @@ private:
   static const bitboard RANK_1; //= 0xFF;
   static const bitboard RANK_8; // 0xFF00000000000000;
 
+  /*
   static const bitboard starting_white_king_position;
   static const bitboard starting_white_queen_position;
   static const bitboard starting_white_rook_position;
@@ -123,7 +124,7 @@ private:
   static const bitboard starting_black_bishop_position;
   static const bitboard starting_black_knight_position;
   static const bitboard starting_black_pawn_position;
-
+  */
   static const bitboard white_queenside_castle_king_position;
   static const bitboard white_queenside_castle_rook_position;
   static const bitboard white_kingside_castle_king_position;
