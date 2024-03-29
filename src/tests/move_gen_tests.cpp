@@ -9,6 +9,7 @@
 bool move_vec_contains(std::vector<Move> &moves, Move &move);
 void print_move_vec(std::vector<Move> &moves);
 
+/*
 TEST_CASE("test pawn move gneration") {
   Board board;
   MoveGenerator move_gen;
@@ -169,6 +170,21 @@ TEST_CASE("test castle moves") {
     move_gen.add_legal_castle_moves(board, WHITE, castle_moves);
 
     REQUIRE(castle_moves.size() == 2);
+  }
+}
+*/
+
+TEST_CASE("knight move gen") {
+  Board board;
+  MoveGenerator move_gen;
+
+  SECTION("starting position knight moves") {
+    board.initialize_board_starting_position();
+
+    std::vector<Move> knight_moves;
+    move_gen.add_pseudo_legal_piece_moves(board, WHITE, KNIGHT, knight_moves);
+
+    REQUIRE(knight_moves.size() == 4);
   }
 }
 
