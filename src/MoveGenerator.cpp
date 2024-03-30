@@ -53,6 +53,7 @@ void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::
 
       // Add double push moves
       double_push_squares = board.get_pawn_double_push(current_position, color) & ~opposing_pieces & ~other_pieces;
+      double_push_squares &= (color == WHITE ? single_push_squares << 8 : single_push_squares >> 8);
       add_moves(current_position, double_push_squares, 1, moves);
 
       // Get capture destinations
@@ -123,14 +124,16 @@ void MoveGenerator::add_legal_castle_moves(Board &board, Color color, std::vecto
 void MoveGenerator::add_legal_kingside_castle_move(Board &board, Color color, std::vector<Move> &moves) {
   // if color has no castle rights, don't add move
   if(!board.get_can_castle_king(color)) return;
-  
+
   bitboard king_position = (color == WHITE ? 0x8 : 0x800000000000000);
   bitboard king_side_rook_position = (color == WHITE ? 0x1 : 0x100000000000000);
   bitboard king_side_castle_path = (color == WHITE ? WHITE_KINGSIDE_CASTLE_PATH : BLACK_KINGSIDE_CASTLE_PATH);
-  
+
   // if castle is blocked, don't add move
   bitboard other_pieces = board.get_all_piece_positions(color) & ~king_position & ~king_side_rook_position;
   if(king_side_castle_path & other_pieces) return;
+
+  
 
   // if castle path is attacked, don't add move
   bitboard current_position;
@@ -260,6 +263,25 @@ uint64_t MoveGenerator::divide(int depth, Board &board, Color color) {
   std::cout << "Total Nodes: " << node_total << "\n";
   std::cout << "Total Moves: " << num_moves << "\n";
   return node_total;
+}
+
+uint64_t MoveGenerator::fast_perft(int depth, Board &board) {
+  std::vector<Move> legal_moves = generate_legal_moves(board, board.get_turn_color());
+  int num_moves = legal_moves.size();
+
+  uint64_t nodes = 0;
+
+  if(depth == 1) {
+    return num_moves;
+  }
+
+  for(int i = 0; i < num_moves; i++) {
+    board.execute_move(legal_moves[i]);
+    nodes += fast_perft(depth - 1, board);
+    board.undo_move(legal_moves[i]);
+  }
+
+  return nodes;
 }
 
 #endif
