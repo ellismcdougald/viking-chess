@@ -19,7 +19,7 @@ static const bitboard RANK_7 = 0x00FF000000000000;
 static const bitboard RANK_8 = 0xFF00000000000000;
 
 static const bitboard WHITE_KINGSIDE_CASTLE_PATH = 0xF;
-static const bitboard WHITE_QUEENSIDE_CASTLE_PATH = 0xF80;
+static const bitboard WHITE_QUEENSIDE_CASTLE_PATH = 0xF8;
 static const bitboard BLACK_KINGSIDE_CASTLE_PATH = 0xF00000000000000;
 static const bitboard BLACK_QUEENSIDE_CASTLE_PATH = 0xF800000000000000;
 
