@@ -51,8 +51,7 @@ public:
   uint64_t perft(int depth, Board &board, Color color);
   std::array<uint64_t, 3> detailed_perft(int depth, Board &board, Color color);
   uint64_t divide(int depth, Board &board, Color color);
-  
-
+  uint64_t fast_perft(int depth, Board &board);
 };
 
 #endif
