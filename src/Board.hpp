@@ -23,6 +23,7 @@ public:
 
   // Initializer:
   void initialize_board_starting_position();
+  void initialize_perft_position_2();
 
   // Getters:
   bitboard get_piece_positions(Piece piece, Color color);
@@ -32,6 +33,7 @@ public:
   bool is_moves_empty(Color color);
   bool get_can_castle_queen(Color color);
   bool get_can_castle_king(Color color);
+  Color get_turn_color();
 
   // Setters:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);

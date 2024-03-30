@@ -31,6 +31,22 @@ void Board::initialize_board_starting_position() {
   piece_bitboards[BLACK][KING] = starting_black_king_position;
 };
 
+void Board::initialize_perft_position_2() {
+  piece_bitboards[WHITE][PAWN] = 0x100800E700;
+  piece_bitboards[WHITE][KNIGHT] = 0x800200000;
+  piece_bitboards[WHITE][BISHOP] = 0x1800;
+  piece_bitboards[WHITE][ROOK] = 0x81;
+  piece_bitboards[WHITE][QUEEN] = 0x40000;
+  piece_bitboards[WHITE][KING] = 0x8;
+
+  piece_bitboards[BLACK][PAWN] = 0xB40A0040010000;
+  piece_bitboards[BLACK][KNIGHT] = 0x440000000000;
+  piece_bitboards[BLACK][BISHOP] = 0x2800000000000;
+  piece_bitboards[BLACK][ROOK] = 0x8100000000000000;
+  piece_bitboards[BLACK][QUEEN] = 0x8000000000000;
+  piece_bitboards[BLACK][KING] = 0x800000000000000;
+}
+
 // Getters:
 bitboard Board::get_piece_positions(Piece piece, Color color) {
   return piece_bitboards[color][piece];
@@ -70,6 +86,10 @@ bool Board::get_can_castle_queen(Color color) {
 
 bool Board::get_can_castle_king(Color color) {
   return can_castle[color][0];
+}
+
+Color Board::get_turn_color() {
+  return turn_color;
 }
 
 // Setters:
