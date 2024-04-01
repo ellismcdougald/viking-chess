@@ -10,6 +10,7 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <stack>
 
 #include "globals.hpp"
 #include "Move.hpp"
@@ -62,6 +63,10 @@ private:
   std::array<std::array<bool, 2>, 2> can_castle; // index 0 is kingside, index 1 is queenside
   std::array<std::array<bool, 2>, 2> previous_can_castle; // index 0 is kingside, index 1 is queenside
   std::array<std::array<bitboard, 6>, 2> piece_bitboards; // COLOR, PIECE
+
+  std::array<std::vector<std::array<bool, 2>>, 2> previous_can_castle_stacks;
+
+
 
   // Moves -- Called by execute_move, undo_move
   void move_piece(Piece piece, Color color, bitboard origin, bitboard destination);
