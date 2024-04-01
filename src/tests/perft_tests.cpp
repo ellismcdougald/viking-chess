@@ -9,22 +9,127 @@
 void print_results(std::array<uint64_t, 3> results);
 
 
-TEST_CASE("perft position 2") {
+TEST_CASE("perft position 2 results") {
   Board board;
   MoveGenerator move_gen;
 
   board.initialize_perft_position_2();
 
+  
   SECTION("depth 1") {
     uint64_t result = move_gen.fast_perft(1, board);
     REQUIRE(result == 48);
   }
+  
 
   SECTION("depth 2") {
     uint64_t result = move_gen.fast_perft(2, board);
     REQUIRE(result == 2039);
   }
+
+  SECTION("depth 3") {
+    uint64_t result = move_gen.fast_perft(3, board);
+    REQUIRE(result == 97862);
+  }
+
+  SECTION("depth 4") {
+    uint64_t result = move_gen.fast_perft(4, board);
+    REQUIRE(result == 4085603);
+  }
 }
+
+
+
+/*
+TEST_CASE("perft position 3 trace") {
+  Board board;
+  MoveGenerator move_gen;
+
+  board.initialize_perft_position_2();
+
+  SECTION("c3b1") {
+    Move move_one('c', 3, 'b', 1, 0);
+    board.execute_move(move_one);
+
+    Move move_two('a', 6, 'b', 5, 0);
+    board.execute_move(move_two);
+
+    std::vector<Move> legal_moves = move_gen.generate_legal_moves(board, WHITE);
+    std::cout << legal_moves.size() << "\n";
+
+    for(int i = 0; i < legal_moves.size(); i++) {
+      legal_moves[i].print_full();
+    }
+
+
+  }
+}
+*/
+
+
+
+
+
+
+/*
+TEST_CASE("perft position 3 debug") {
+  Board board;
+  MoveGenerator move_gen;
+
+  board.initialize_perft_position_2();
+
+  //move_gen.perft(2, board, WHITE);
+
+  SECTION("trace\n") {
+    std::array<std::array<bool, 2>, 2> can_castle = board.can_castle;
+    Move move_one('h', 1, 'g', 1, 0);
+    board.execute_move(move_one);
+
+    std::vector<Move> legal_moves_black = move_gen.generate_legal_moves(board, BLACK);
+    for(int i = 0; i < legal_moves_black.size(); i++) {
+      board.execute_move(legal_moves_black[i]);
+
+      std::vector<Move> legal_moves_white = move_gen.generate_legal_moves(board, WHITE);
+      for(int j = 0; j < legal_moves_white.size(); j++) {
+	board.execute_move(legal_moves_white[j]);
+	board.undo_move(legal_moves_white[j]);
+      }
+      board.undo_move(legal_moves_black[i]);
+    }
+
+    board.undo_move(move_one);
+
+    REQUIRE(board.can_castle == can_castle);
+
+    
+  }
+}
+*/
+
+
+/*
+TEST_CASE("perft position 2 debug") {
+  Board board;
+  MoveGenerator move_gen;
+
+  board.initialize_perft_position_2();
+
+  SECTION("e5d7") {
+    Move move('e', 5, 'd', 7, 4);
+    board.execute_move(move);
+
+    std::vector<Move> legal_moves = move_gen.generate_legal_moves(board, BLACK);
+    std::cout << legal_moves.size() << "\n";
+
+    for(int i = 0; i < legal_moves.size(); i++) {
+      legal_moves[i].print_full();
+    }
+
+  }
+}
+*/
+
+
 
 /*
 
