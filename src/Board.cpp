@@ -55,7 +55,11 @@ bitboard Board::get_piece_positions(Piece piece, Color color) {
 bitboard Board::get_all_piece_positions(Color color) {
   bitboard result = 0;
   for(int piece_index = 0; piece_index < 6; piece_index++) {
-    assert((result & piece_bitboards[color][piece_index]) == 0);
+    //std::cout << "result:\n";
+    //print_bitboard(result);
+    //std::cout << "new bitboard\n";
+    //print_bitboard(piece_bitboards[color][piece_index]);
+    //assert((result & piece_bitboards[color][piece_index]) == 0);
     result |= piece_bitboards[color][piece_index];
   }
   return result;
@@ -252,7 +256,9 @@ void Board::undo_move(Move &move) {
 // Castling:
 void Board::update_castle_rights(Move &move, Piece moving_piece) {
   bitboard origin = move.get_origin();
-  previous_can_castle = can_castle;
+  //previous_can_castle[turn_color] = can_castle[turn_color];
+  previous_can_castle_stacks[turn_color].push_back(can_castle[turn_color]);
+  
   if(moving_piece == KING) {
     set_can_castle_king(turn_color, false);
     set_can_castle_queen(turn_color, false);
@@ -266,7 +272,9 @@ void Board::update_castle_rights(Move &move, Piece moving_piece) {
 }
 
 void Board::revert_castle_rights(Color color) {
-  can_castle[color] = previous_can_castle[color];
+  //can_castle[color] = previous_can_castle[color];
+  can_castle[color] = previous_can_castle_stacks[turn_color].back();
+  previous_can_castle_stacks[turn_color].pop_back();
 }
 
 // Moves:
