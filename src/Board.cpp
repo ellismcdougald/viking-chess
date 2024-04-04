@@ -47,6 +47,16 @@ void Board::initialize_perft_position_2() {
   piece_bitboards[BLACK][KING] = 0x800000000000000;
 }
 
+void Board::initialize_perft_position_3() {
+  piece_bitboards[WHITE][PAWN] = 0x4000000A00;
+  piece_bitboards[WHITE][ROOK] = 0x40000000;
+  piece_bitboards[WHITE][KING] = 0x8000000000;
+
+  piece_bitboards[BLACK][PAWN] = 0x20100004000000;
+  piece_bitboards[BLACK][ROOK] = 0x100000000;
+  piece_bitboards[BLACK][KING] = 0x1000000;
+}
+
 // Getters:
 bitboard Board::get_piece_positions(Piece piece, Color color) {
   return piece_bitboards[color][piece];
@@ -55,11 +65,6 @@ bitboard Board::get_piece_positions(Piece piece, Color color) {
 bitboard Board::get_all_piece_positions(Color color) {
   bitboard result = 0;
   for(int piece_index = 0; piece_index < 6; piece_index++) {
-    //std::cout << "result:\n";
-    //print_bitboard(result);
-    //std::cout << "new bitboard\n";
-    //print_bitboard(piece_bitboards[color][piece_index]);
-    //assert((result & piece_bitboards[color][piece_index]) == 0);
     result |= piece_bitboards[color][piece_index];
   }
   return result;
@@ -269,6 +274,23 @@ void Board::update_castle_rights(Move &move, Piece moving_piece) {
       set_can_castle_king(turn_color, false);
     }
   }
+
+  /*
+  uint16_t move_flags = move.get_flags();
+  if(move_flags == 4 || (move_flags >= 12 && move_flags <= 15)) {
+    bitboard move_destination = move.get_destination();
+    Piece captured_piece = get_piece_at_position(move_destination, negate_color(turn_color));
+    bitboard king_side_rook_position = (turn_color == BLACK ? 0x1 : 0x100000000000000);
+    bitboard queen_side_rook_position = (turn_color == BLACK ? 0x80 : 0x8000000000000000);
+    if(captured_piece == ROOK) {
+      if(move_destination == king_side_rook_position) {
+	set_can_castle_king(negate_color(turn_color), false);
+      } else if(move_destination == queen_side_rook_position) {
+	set_can_castle_queen(negate_color(turn_color), false);
+      }
+    }
+  }
+  */
 }
 
 void Board::revert_castle_rights(Color color) {
