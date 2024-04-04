@@ -15,6 +15,7 @@ std::vector<Move> MoveGenerator::generate_legal_moves(Board &board, Color color)
     }
   }
 
+
   add_legal_castle_moves(board, color, legal_moves);
 
   return legal_moves;
@@ -130,6 +131,10 @@ void MoveGenerator::add_legal_kingside_castle_move(Board &board, Color color, st
   bitboard king_side_king_destination (color == WHITE ? 0x2 : 0x200000000000000);
   bitboard king_side_castle_path = (color == WHITE ? WHITE_KINGSIDE_CASTLE_PATH : BLACK_KINGSIDE_CASTLE_PATH);
 
+  // if king and rook not in position, don't add move
+  if(!(board.get_piece_positions(KING, color) & king_position)) return;
+  if(!(board.get_piece_positions(ROOK, color) & king_side_rook_position)) return;
+
   // if castle is blocked, don't add move
   bitboard other_pieces = (board.get_all_piece_positions(color) | board.get_all_piece_positions(negate_color(color))) & ~king_position & ~king_side_rook_position;
   if(king_side_castle_path & other_pieces) return;
@@ -157,6 +162,10 @@ void MoveGenerator::add_legal_queenside_castle_move(Board &board, Color color, s
   bitboard queen_side_king_destination = (color == WHITE ? 0x20 : 0x2000000000000000);
   bitboard queen_side_castle_path = (color == WHITE ? WHITE_QUEENSIDE_CASTLE_PATH : BLACK_QUEENSIDE_CASTLE_PATH);
   bitboard queen_side_possible_block_square = (color == WHITE ? 0x40 : 0x4000000000000000);
+
+  // if king and rook not in position, don't add move
+  if(!(board.get_piece_positions(KING, color) & king_position)) return;
+  if(!(board.get_piece_positions(ROOK, color) & queen_side_rook_position)) return;
   
   // if castle is blocked, don't add move
   bitboard other_pieces = (board.get_all_piece_positions(color) | board.get_all_piece_positions(negate_color(color))) & ~king_position & ~queen_side_rook_position;
@@ -192,8 +201,10 @@ void MoveGenerator::add_promotion_moves(bitboard origin, bitboard all_destinatio
   for(bitboard mask = 1; mask > 0; mask <<= 1) {
     current_destination = all_destinations & mask;
     if(current_destination) {
-      Move move(origin, current_destination, 0);
+      /*
+      Move move(origin, current_destination, (capture == true ? 4 : 0));
       moves.push_back(move);
+      */
       for(int i = 0; i < 4; i++) {
 	Move move(origin, current_destination, start_flag + i);
 	moves.push_back(move);
@@ -206,14 +217,13 @@ uint64_t MoveGenerator::perft(int depth, Board &board, Color color) {
   uint64_t nodes = 0;
 
   if(depth == 0) return 1;
-
+  
   std::vector<Move> legal_moves = generate_legal_moves(board, color);
   int n_moves = legal_moves.size();
 
   for(int i = 0; i < n_moves; i++) {
     std::array<std::array<bitboard, 6>, 2> piece_bitboards = board.piece_bitboards;
     std::array<std::array<bool, 2>, 2> can_castle = board.can_castle;
-    //legal_moves[i].print_full();
     board.execute_move(legal_moves[i]);
     nodes += perft(depth - 1, board, negate_color(color));
     board.undo_move(legal_moves[i]);
