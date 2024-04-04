@@ -25,6 +25,7 @@ public:
   // Initializer:
   void initialize_board_starting_position();
   void initialize_perft_position_2();
+  void initialize_perft_position_3();
 
   // Getters:
   bitboard get_piece_positions(Piece piece, Color color);
