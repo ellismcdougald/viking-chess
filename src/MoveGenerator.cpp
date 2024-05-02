@@ -32,7 +32,6 @@ std::vector<Move> MoveGenerator::generate_pseudo_legal_moves(Board &board, Color
   return pseudo_legal_moves;
 }
 
-// Needs update to consider promotion moves
 void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::vector<Move> &moves) {
   bitboard promotion_file = color == WHITE ? RANK_8 : RANK_1;
   
