@@ -26,3 +26,6 @@ target_link_libraries(perft_tests PRIVATE Catch2::Catch2WithMain)
 
 add_executable(eval_tests tests/evaluation_tests.cpp Evaluation.cpp Board.cpp Move.cpp)
 target_link_libraries(eval_tests PRIVATE Catch2::Catch2WithMain)
+
+add_executable(search_tests tests/search_tests.cpp Search.cpp Evaluation.cpp Board.cpp Move.cpp MoveGenerator.cpp)
+target_link_libraries(search_tests PRIVATE Catch2::Catch2WithMain)
