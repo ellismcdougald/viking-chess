@@ -17,7 +17,6 @@ uint8_t Evaluation::evaluate(Board &board) {
     score -= count_set_bits(board.get_piece_positions(piece_array[i], BLACK)) * piece_weights_array[i];
   }
 
-				       
   return score;
 }
 
