@@ -2,9 +2,32 @@
 #define SEARCH_CPP // GUARD
 
 #include "Search.hpp"
+#include <algorithm>
+#include <random>
 
 // Constructor:
-Search::Search() {}
+Search::Search() : best_move(0, 0, -1) {}
+
+// Root:
+int Search::alpha_beta_max_root(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval) {
+  if(depth_left == 0) return eval.evaluate(board);
+
+  std::vector<Move> moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  int score;
+  for(Move move : moves) {
+    board.execute_move(move);
+    score = alpha_beta_min(alpha, beta, depth_left - 1, board, move_gen, eval);
+    board.undo_move(move);
+    if(score >= beta) {
+      return beta;
+    }
+    if(score > alpha) {
+      best_move = move;
+      alpha = score;
+    }
+  }
+  return alpha;
+}
 
 // Alpha beta:
 int Search::alpha_beta_max(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval) {
@@ -16,8 +39,12 @@ int Search::alpha_beta_max(int alpha, int beta, int depth_left, Board &board, Mo
     board.execute_move(move);
     score = alpha_beta_min(alpha, beta, depth_left - 1, board, move_gen, eval);
     board.undo_move(move);
-    if(score >= beta) return beta;
-    if(score > alpha) alpha = score;
+    if(score >= beta) {
+      return beta;
+    }
+    if(score > alpha) {
+      alpha = score;
+    }
   }
   return alpha;
 }
