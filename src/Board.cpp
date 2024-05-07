@@ -7,11 +7,12 @@
 
 // Constructor:
 Board::Board() {
-  piece_bitboards = {};
+  piece_bitboards[0].fill(0);
+  piece_bitboards[1].fill(0);
   turn_color = WHITE;
   initialize_lookups();
-  can_castle[WHITE] = {true, true};
-  can_castle[BLACK] = {true, true};
+  can_castle[WHITE].fill(true);
+  can_castle[BLACK].fill(true);
 }
 
 // Initializer:
@@ -256,6 +257,30 @@ void Board::undo_move(Move &move) {
   }
 
   moves[turn_color].pop_back();
+}
+
+// Print:
+void Board::print() {
+  std::array<char, 7> piece_chars = {'p', 'n', 'b', 'r', 'q', 'k', '0'};
+  std::unordered_map<Piece, char> piece_map = {
+    {PAWN, 'p'},
+    {ROOK, 'r'}
+  };
+  bitboard mask = 0x8000000000000000;
+  Piece current_piece;
+  for(int row = 0; row < 8; row++) {
+    for(int col = 0; col < 8; col++) {
+      current_piece = get_piece_at_position(mask, WHITE);
+      if(current_piece < 6) {
+	std::cout << (char) toupper(piece_chars[current_piece]);
+      } else {
+	current_piece = get_piece_at_position(mask, BLACK);
+	std::cout << piece_chars[current_piece];
+      }
+      mask >>= 1;
+    }
+    std::cout << "\n";
+  }
 }
 
 // Castling:
