@@ -96,6 +96,39 @@ void Move::print_full() {
   std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination()) << " -- " << get_flags() << "\n";
 }
 
+// To String:
+std::string Move::to_uci_notation() {
+  std::string move_str = get_row_col_from_position(get_origin());
+  move_str.append(get_row_col_from_position(get_destination()));
+  switch(get_flags()) {
+  case 8:
+    move_str.append("n");
+    break;
+  case 9:
+    move_str.append("b");
+    break;
+  case 10:
+    move_str.append("r");
+    break;
+  case 11:
+    move_str.append("q");
+    break;
+  case 12:
+    move_str.append("n");
+    break;
+  case 13:
+    move_str.append("b");
+    break;
+  case 14:
+    move_str.append("r");
+    break;
+  case 15:
+    move_str.append("q");
+    break;
+  }
+  return move_str;
+}
+
 // Equality:
 bool Move::move_equals(Move &other_move) {
   return move_rep == other_move.move_rep;

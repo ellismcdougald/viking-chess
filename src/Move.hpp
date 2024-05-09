@@ -66,6 +66,9 @@ public:
   void print();
   void print_full();
 
+  // To String:
+  std::string to_uci_notation();
+
   // Equality:
   bool move_equals(Move &other_move);
   
