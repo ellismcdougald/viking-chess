@@ -3,9 +3,13 @@
 
 #include "UCI.hpp"
 #include <iostream>
+#include <sstream>      // std::istringstream
+#include <string>       // std::string
+
+
 
 // Constructor:
-Uci::Uci() : move_gen(), board() {}
+Uci::Uci() : move_gen(), board(), search(), eval() {}
 
 // Main loop:
 /*
@@ -27,6 +31,8 @@ void Uci::main_loop() {
   }
 }
 */
+
+/*
 void Uci::main_loop() {
   std::string current_input;
   while(1) {
@@ -39,6 +45,8 @@ void Uci::main_loop() {
       std::cout << "readyok" << std::endl;
     } else if(current_input == "position") {
       handle_position();
+    } else if(current_input == "print") {
+      board.print();
     }
   }
 }
@@ -54,12 +62,62 @@ void Uci::handle_position() {
   std::string next_string;
   std::cin >> next_string;
   if(next_string == "moves") {
-    while(std::cin >> next_string) {
+    std::cin >> next_string;
+    while(next_string != "\n") {
       Move move = get_move_from_str(next_string);
-      move.print();
+      if(move.is_null()) continue;
+      board.execute_move(move);
+
+      std::cin >> next_string;
+    }
+  }
+  std::cout << "done\n";
+}
+*/
+
+
+void Uci::main_loop() {
+  std::string line, token;
+
+  while(std::getline(std::cin, line)) {
+    
+    std::istringstream line_stream(line);
+    line_stream >> std::skipws >> token;
+
+    if(token == "position") {
+      handle_position(line_stream);
+    } else if(token == "print") {
+      board.print();
+    } else if(token == "go") {
+      // TODO: give search its own thread
+      search.alpha_beta_max_root(-10000, 10000, 5, board, move_gen, eval);
+      std::cout << search.get_best_move().to_uci_notation() << "\n";
     }
   }
 }
+
+
+void Uci::handle_position(std::istringstream& stream) {
+  std::string token;
+  stream >> token;
+  
+  if(token == "startpos") {
+    board.clear();
+    board.initialize_board_starting_position();
+  } else {
+    return;
+  }
+
+  stream >> token;
+  if(token == "moves") {
+    while(stream >> token) {
+      Move move = get_move_from_str(token);
+      if(move.is_null()) continue;
+      board.execute_move(move);
+    }
+  }
+}
+
 
 Move Uci::get_move_from_str(std::string move_str) {
   std::vector<Move> legal_moves = move_gen.generate_legal_moves(board, board.get_turn_color());

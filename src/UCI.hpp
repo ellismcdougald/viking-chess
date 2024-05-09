@@ -7,6 +7,8 @@
 
 #include "Board.hpp"
 #include "MoveGenerator.hpp"
+#include "Evaluation.hpp"
+#include "Search.hpp"
 
 class Uci {
 public:
@@ -19,9 +21,11 @@ private:
   Board *board_ptr;
   MoveGenerator move_gen;
   Board board;
+  Search search;
+  Evaluation eval;
 
   
-  void handle_position();
+  void handle_position(std::istringstream& stream);
   Move get_move_from_str(std::string move_str);
   
 };
