@@ -53,6 +53,7 @@ public:
   bitboard get_destination();
   bitboard get_flags();
   bool is_double_pawn_push();
+  bool is_null();
 
   // Setters:
   void set_origin_column(char origin_column);

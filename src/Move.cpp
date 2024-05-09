@@ -51,6 +51,10 @@ bool Move::is_double_pawn_push() {
   return get_flags() == 1;
 }
 
+bool Move::is_null() {
+  return (get_destination() == 0) && (get_origin() == 0) && (get_flags() == 0);
+}
+
 // Setters:
 void Move::set_origin_column(char origin_column) {
   char col_rep = origin_column - 97;
@@ -89,7 +93,8 @@ void Move::print_binary(uint16_t move_rep) {
 }
 
 void Move::print() {
-  std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination());
+  if(is_null()) std::cout << "Null";
+  else std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination());
 }
 
 void Move::print_full() {
