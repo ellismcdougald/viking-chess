@@ -2,7 +2,7 @@
 #define EVALUATION_CPP // GUARD
 
 #include "Evaluation.hpp"
-#include "globals.cpp"
+//#include "globals.cpp"
 
 // Constructor:
 Evaluation::Evaluation() {}
