@@ -4,6 +4,7 @@
 #include "Board.hpp"
 #include "Move.hpp"
 #include "globals.hpp"
+#include "globals.cpp"
 
 // Constructor:
 Board::Board() {
@@ -11,6 +12,14 @@ Board::Board() {
   piece_bitboards[1].fill(0);
   turn_color = WHITE;
   initialize_lookups();
+  can_castle[WHITE].fill(true);
+  can_castle[BLACK].fill(true);
+}
+
+void Board::clear() {
+  piece_bitboards[0].fill(0);
+  piece_bitboards[1].fill(0);
+  turn_color = WHITE;
   can_castle[WHITE].fill(true);
   can_castle[BLACK].fill(true);
 }
@@ -214,6 +223,30 @@ void Board::execute_move(Move &move) {
   set_turn_color(negate_color(turn_color));
 }
 
+
+void Board::execute_move(std::string move_str) {
+  int move_flag;
+  
+  std::string start_str = move_str.substr(0, 2);
+  std::string end_str = move_str.substr(2, 3);
+  //bitboard start_position = position_string_to_bitboard(start_str);
+  bitboard end_position = position_string_to_bitboard(end_str);
+
+  Piece end_piece = get_piece_at_position(end_position, negate_color(turn_color));
+  if(end_piece == 6) { // move is not capture
+    if(turn_color == WHITE && start_str[1] == '2' && end_str[1] == '4') {
+      move_flag = 1;
+    } else if(turn_color == BLACK && start_str[1] == '7' && end_str[1] == '5') {
+      move_flag = 1;
+    }
+    move_flag = 0;
+  } else { // move is capture
+    std::cout << "test\n";
+
+  }
+}
+
+
 // Opposite of execute_move
 void Board::undo_move(Move &move) {
   set_turn_color(negate_color(turn_color));
@@ -262,10 +295,6 @@ void Board::undo_move(Move &move) {
 // Print:
 void Board::print() {
   std::array<char, 7> piece_chars = {'p', 'n', 'b', 'r', 'q', 'k', '0'};
-  std::unordered_map<Piece, char> piece_map = {
-    {PAWN, 'p'},
-    {ROOK, 'r'}
-  };
   bitboard mask = 0x8000000000000000;
   Piece current_piece;
   for(int row = 0; row < 8; row++) {

@@ -22,6 +22,9 @@ public:
   // Constructor:
   Board();
 
+  // Clear:
+  void clear();
+
   // Initializer:
   void initialize_board_starting_position();
   void initialize_perft_position_2();
@@ -55,6 +58,7 @@ public:
 
   // Moves:
   void execute_move(Move &move);
+  void execute_move(std::string move_str);
   void undo_move(Move &move);
 
   // Print:
