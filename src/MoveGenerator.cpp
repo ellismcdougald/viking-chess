@@ -9,12 +9,11 @@ std::vector<Move> MoveGenerator::generate_legal_moves(Board &board, Color color)
   std::vector<Move> legal_moves;
   
   std::vector<Move> pseudo_legal_moves = generate_pseudo_legal_moves(board, color);
-  for(Move &move : pseudo_legal_moves) {
-    if(board.is_move_legal(move, color)) {
-      legal_moves.push_back(move);
+  for(int i = 0; i < pseudo_legal_moves.size(); i++) {
+    if(board.is_move_legal(pseudo_legal_moves[i], color)) {
+      legal_moves.push_back(pseudo_legal_moves[i]);
     }
   }
-
 
   add_legal_castle_moves(board, color, legal_moves);
 
@@ -239,7 +238,7 @@ std::array<uint64_t, 3> MoveGenerator::detailed_perft(int depth, Board &board, C
 
   if(depth == 0) return results;
 
-  results = {0, 0, 0};
+  for(int i = 0; i < 3; i++) results[i] = 0;
 
   uint64_t quiet_moves = 0;
   uint64_t capture_moves = 0;
