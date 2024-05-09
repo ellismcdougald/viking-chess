@@ -14,6 +14,9 @@ public:
   // Constructor:
   Search();
 
+  // Getters:
+  Move get_best_move();
+
   // Root:
   int alpha_beta_max_root(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval);
   
