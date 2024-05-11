@@ -294,10 +294,13 @@ void Board::undo_move(Move &move) {
 
 // Print:
 void Board::print() {
-  std::array<char, 7> piece_chars = {'p', 'n', 'b', 'r', 'q', 'k', '0'};
+  std::string separator_line(17, '-');
+  std::array<char, 7> piece_chars = {'p', 'n', 'b', 'r', 'q', 'k', ' '};
   bitboard mask = 0x8000000000000000;
   Piece current_piece;
+  std::cout << " " << separator_line << std::endl;
   for(int row = 0; row < 8; row++) {
+    std::cout << (8 - row) << "|";
     for(int col = 0; col < 8; col++) {
       current_piece = get_piece_at_position(mask, WHITE);
       if(current_piece < 6) {
@@ -306,10 +309,12 @@ void Board::print() {
 	current_piece = get_piece_at_position(mask, BLACK);
 	std::cout << piece_chars[current_piece];
       }
+      std::cout << "|";
       mask >>= 1;
     }
-    std::cout << "\n";
+    std::cout << std::endl << " " << separator_line << std::endl;
   }
+  std::cout << "  A B C D E F G H" << std::endl;
 }
 
 // Castling:
