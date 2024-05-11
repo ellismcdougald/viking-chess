@@ -52,7 +52,7 @@ bool Move::is_double_pawn_push() {
 }
 
 bool Move::is_null() {
-  return (get_destination() == 0) && (get_origin() == 0) && (get_flags() == 0);
+  return get_origin() == get_destination();
 }
 
 // Setters:
