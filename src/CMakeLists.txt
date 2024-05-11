@@ -10,7 +10,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(main main.cpp Uci.cpp Board.cpp Move.cpp MoveGenerator.cpp Evaluation.cpp Search.cpp)
+add_executable(main main.cpp Game.cpp Board.cpp Move.cpp MoveGenerator.cpp Evaluation.cpp Search.cpp)
 
 add_executable(move_tests tests/move_tests.cpp Move.cpp globals.cpp)
 target_link_libraries(move_tests PRIVATE Catch2::Catch2WithMain)
