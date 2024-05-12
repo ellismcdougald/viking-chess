@@ -18,6 +18,14 @@ int Search::alpha_beta_max_root(int alpha, int beta, int depth_left, Board &boar
   if(depth_left == 0) return eval.evaluate(board);
 
   std::vector<Move> moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  if(moves.empty()) {
+    Move null_move(0, 0, 0);
+    best_move = null_move;
+    return 0;
+  } else {
+    best_move = moves[0];
+  }
+  
   int score;
   for(int i = 0; i < moves.size(); i++) {
     board.execute_move(moves[i]);
