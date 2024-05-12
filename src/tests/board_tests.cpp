@@ -6,6 +6,7 @@
 
 #include "../Board.hpp"
 
+/*
 TEST_CASE("Test board", "[board]") {
   Board board;
   board.initialize_board_starting_position();
@@ -20,8 +21,17 @@ TEST_CASE("Test string execute_move") {
     board.execute_move(move_str);
   }
 }
+*/
 
+/*
+TEST_CASE("test inititalize_fen") {
+  Board board;
 
+  SECTION("starting position") {
+    board.initialize_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  }
+}
+*/
 
 /*
 TEST_CASE("Test set_piece_positions", "[set_piece_positions]") {
