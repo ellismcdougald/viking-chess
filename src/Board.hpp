@@ -29,6 +29,7 @@ public:
   void initialize_board_starting_position();
   void initialize_perft_position_2();
   void initialize_perft_position_3();
+  void initialize_fen(std::string fen);
 
   // Getters:
   bitboard get_piece_positions(Piece piece, Color color);
@@ -98,6 +99,7 @@ private:
   Piece get_piece_from_index(int index);
   bitboard move_direction(bitboard position, Direction direction);
   Piece get_promotion_piece_from_flags(uint8_t flags);
+  Piece get_piece_from_char(char piece_char);
 
   // Lookup Tables:
   std::array<std::map<bitboard, bitboard>, 2> pawn_single_pushes_lookups;

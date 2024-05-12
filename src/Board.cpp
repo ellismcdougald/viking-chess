@@ -1,6 +1,8 @@
 #ifndef BOARD_CPP // GUARD
 #define BOARD_CPP // GUARD
 
+#include <sstream>
+
 #include "Board.hpp"
 #include "Move.hpp"
 #include "globals.hpp"
@@ -65,6 +67,51 @@ void Board::initialize_perft_position_3() {
   piece_bitboards[BLACK][PAWN] = 0x20100004000000;
   piece_bitboards[BLACK][ROOK] = 0x100000000;
   piece_bitboards[BLACK][KING] = 0x1000000;
+}
+
+/**
+ ** This only supports position and turn color. The remaining information in the fen string is discarded. The engine does not use this function-- it is for testing only.
+ **/
+void Board::initialize_fen(std::string fen) {
+  bitboard current_position = 0x8000000000000000;
+  std::istringstream fen_ss(fen);
+
+  std::string pieces_str, color_str, castle_string, ep_string, half_clock_str, full_clock_str;
+    
+  fen_ss >> pieces_str;
+  Piece piece_to_place;
+  Color piece_color;
+  int numSpaces;
+  for(int i = 0; i < pieces_str.length(); i++) {
+    if(pieces_str[i] == '/') continue;
+    else if(isdigit(pieces_str[i])) {
+      for(int j = 0; j < pieces_str[i] - '0'; j++) current_position >>= 1;
+    } else {
+      piece_color = isupper(pieces_str[i]) ? WHITE : BLACK;
+      piece_to_place = get_piece_from_char(pieces_str[i]);
+      set_piece(piece_to_place, piece_color, current_position);
+      current_position >>= 1;
+    }
+  }
+
+  fen_ss >> color_str;
+  if(!(color_str == "w" | color_str == "b")) {
+    std::cout << "Invalid fen." << std::endl;
+    return;
+  }
+  set_turn_color(color_str == "w" ? WHITE : BLACK);
+}
+
+Piece Board::get_piece_from_char(char piece_char) {
+  switch(tolower(piece_char)) {
+  case 'p': return PAWN;
+  case 'n': return KNIGHT;
+  case 'b': return BISHOP;
+  case 'r': return ROOK;
+  case 'q': return QUEEN;
+  case 'k': return KING;
+  default: return NONE;
+  }
 }
 
 // Getters:
