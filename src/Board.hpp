@@ -40,6 +40,8 @@ public:
   bool get_can_castle_queen(Color color);
   bool get_can_castle_king(Color color);
   Color get_turn_color();
+  std::array<std::array<bitboard, 6>, 2>& get_piece_bitboards();
+  std::array<std::array<bool, 2>, 2>& get_can_castle();
 
   // Setters:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);

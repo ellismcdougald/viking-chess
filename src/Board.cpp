@@ -2,6 +2,7 @@
 #define BOARD_CPP // GUARD
 
 #include <sstream>
+#include <string>
 
 #include "Board.hpp"
 #include "Move.hpp"
@@ -156,6 +157,14 @@ bool Board::get_can_castle_king(Color color) {
 
 Color Board::get_turn_color() {
   return turn_color;
+}
+
+std::array<std::array<bitboard, 6>, 2>& Board::get_piece_bitboards() {
+  return piece_bitboards;
+}
+
+std::array<std::array<bool, 2>, 2>& Board::get_can_castle() {
+  return can_castle;
 }
 
 // Setters:
