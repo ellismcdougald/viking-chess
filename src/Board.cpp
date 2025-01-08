@@ -204,8 +204,7 @@ void Board::set_turn_color(Color new_turn_color) {
 
 // Board Logic:
 bool Board::is_checked(Color color) {
-  bitboard king_position = get_piece_positions(KING, color);
-  return is_position_attacked_by(king_position, negate_color(color));
+  return get_attacks_to_king(get_piece_positions(KING, color), color) > 0;
 }
 
 bool Board::is_move_legal(Move &move, Color color) {
@@ -473,6 +472,15 @@ bitboard Board::get_queen_attacks(bitboard position) {
 
 bitboard Board::get_king_attacks(bitboard position) {
   return king_moves_lookup[position];
+}
+
+bitboard Board::get_attacks_to_king(bitboard king_position, Color king_color) {
+  Color op_color = negate_color(king_color);
+  return
+    (get_pawn_attacks(king_position, king_color) & get_piece_positions(PAWN, op_color))
+    | (get_knight_attacks(king_position) & get_piece_positions(KNIGHT, op_color))
+    | (get_bishop_attacks(king_position) & (get_piece_positions(BISHOP, op_color) | get_piece_positions(QUEEN, op_color)))
+    | (get_rook_attacks(king_position) & (get_piece_positions(ROOK, op_color) | get_piece_positions(QUEEN, op_color)));
 }
 
 // Sliding piece attack generation

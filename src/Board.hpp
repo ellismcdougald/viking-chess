@@ -99,6 +99,7 @@ private:
   bitboard get_rook_attacks(bitboard position);
   bitboard get_queen_attacks(bitboard position);
   bitboard get_king_attacks(bitboard position);
+  bitboard get_attacks_to_king(bitboard king_position, Color king_color);
 
   // Sliding piece attack generation:
   bitboard generate_sliding_attacks(bitboard position, Direction direction, bitboard blockers);
