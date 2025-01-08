@@ -1,6 +1,8 @@
 /*
  * Board class.
  * Stores information regarding the current game state.
+ *
+ * Magic bitboards: https://essays.jwatzman.org/essays/chess-move-generation-with-magic-bitboards.html
  */
 
 #ifndef BOARD_HPP // GUARD
@@ -42,6 +44,9 @@ public:
   Color get_turn_color();
   std::array<std::array<bitboard, 6>, 2>& get_piece_bitboards();
   std::array<std::array<bool, 2>, 2>& get_can_castle();
+  int get_square_index(bitboard square);
+  bitboard get_square(int square_index);
+  bitboard get_blockers(bitboard position);
 
   // Setters:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);
@@ -66,7 +71,7 @@ public:
 
   // Print:
   void print();
-  
+
 private:
   Color turn_color; // color who has the current turn
   std::array<std::vector<Move>, 2> moves;
@@ -95,15 +100,21 @@ private:
   bitboard get_queen_attacks(bitboard position);
   bitboard get_king_attacks(bitboard position);
 
-  bitboard get_sliding_attacks(bitboard position, Direction direction);
+  // Sliding piece attack generation:
+  bitboard generate_sliding_attacks(bitboard position, Direction direction, bitboard blockers);
+  bitboard generate_bishop_attacks(bitboard position, bitboard blockers);
+  bitboard generate_rook_attacks(bitboard position, bitboard blockers);
 
   // Helpers:
   Piece get_piece_from_index(int index);
   bitboard move_direction(bitboard position, Direction direction);
   Piece get_promotion_piece_from_flags(uint8_t flags);
   Piece get_piece_from_char(char piece_char);
+  bitboard get_end_edge_mask(Direction direction);
 
   // Lookup Tables:
+  std::map<int, bitboard> square_lookup;
+  std::map<bitboard, int> square_index_lookup;
   std::array<std::map<bitboard, bitboard>, 2> pawn_single_pushes_lookups;
   std::array<std::map<bitboard, bitboard>, 2> pawn_double_pushes_lookups;
   std::array<std::map<bitboard, bitboard>, 2> pawn_attacks_lookups;
@@ -111,8 +122,13 @@ private:
   std::map<bitboard, bitboard> king_moves_lookup;
   std::map<bitboard, bitboard> castle_rook_origin_lookup;
   std::map<bitboard, bitboard> castle_rook_destination_lookup;
+  // Magic Bitboards:
+  std::array<std::array<bitboard, 4096>, 64> rook_attacks_magic_bb;
+  std::array<std::array<bitboard, 4096>, 64> bishop_attacks_magic_bb;
 
+  // Initialize Lookup Tables:
   void initialize_lookups(); // Called by constructor
+  void initialize_square_lookups();
   void initialize_single_pawn_pushes_lookups();
   void initialize_double_pawn_pushes_lookups();
   void initialize_pawn_attacks_lookups();
@@ -120,28 +136,10 @@ private:
   void initialize_king_moves_lookup();
   void initialize_castle_rook_origin_lookup();
   void initialize_castle_rook_destination_lookup();
+  // Initialize Magic Bitboards
+  void initialize_rook_attacks_magic_bb();
+  void initialize_bishop_attacks_magic_bb();
 
-  // Constants:
-  static const bitboard FILE_A; //= 0x8080808080808080;
-  static const bitboard FILE_H; //= 0x0808080808080808;
-  static const bitboard RANK_1; //= 0xFF;
-  static const bitboard RANK_8; // 0xFF00000000000000;
-
-  /*
-  static const bitboard starting_white_king_position;
-  static const bitboard starting_white_queen_position;
-  static const bitboard starting_white_rook_position;
-  static const bitboard starting_white_bishop_position;
-  static const bitboard starting_white_knight_position;
-  static const bitboard starting_white_pawn_position;
-  
-  static const bitboard starting_black_king_position;
-  static const bitboard starting_black_queen_position;
-  static const bitboard starting_black_rook_position;
-  static const bitboard starting_black_bishop_position;
-  static const bitboard starting_black_knight_position;
-  static const bitboard starting_black_pawn_position;
-  */
   static const bitboard white_queenside_castle_king_position;
   static const bitboard white_queenside_castle_rook_position;
   static const bitboard white_kingside_castle_king_position;
@@ -150,6 +148,13 @@ private:
   static const bitboard black_queenside_castle_rook_position;
   static const bitboard black_kingside_castle_king_position;
   static const bitboard black_kingside_castle_rook_position;
+
+  static const std::array<bitboard, 64> ROOK_MASKS;
+  static const std::array<bitboard, 64> ROOK_MAGICS;
+  static const std::array<bitboard, 64> ROOK_SHIFTS;
+  static const std::array<bitboard, 64> BISHOP_MASKS;
+  static const std::array<bitboard, 64> BISHOP_MAGICS;
+  static const std::array<bitboard, 64> BISHOP_SHIFTS;
 };
 
 #endif // END GUARD

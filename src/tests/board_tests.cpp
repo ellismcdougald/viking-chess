@@ -6,7 +6,6 @@
 
 #include "../Board.hpp"
 
-/*
 TEST_CASE("Test board", "[board]") {
   Board board;
   board.initialize_board_starting_position();
@@ -21,9 +20,7 @@ TEST_CASE("Test string execute_move") {
     board.execute_move(move_str);
   }
 }
-*/
 
-/*
 TEST_CASE("test inititalize_fen") {
   Board board;
 
@@ -31,9 +28,7 @@ TEST_CASE("test inititalize_fen") {
     board.initialize_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   }
 }
-*/
 
-/*
 TEST_CASE("Test set_piece_positions", "[set_piece_positions]") {
   Board board;
 
@@ -597,7 +592,7 @@ TEST_CASE("test get_sliding_attacks") {
   }
 
   SECTION("test northeast from f1") {
-    bitboard actual = board.get_sliding_attacks(position_string_to_bitboard("f1"), NORTHEAST);
+    bitboard actual = board.generate_sliding_attacks(position_string_to_bitboard("f1"), NORTHEAST, board.get_blockers(position_string_to_bitboard("f1")));
     bitboard expected = 0x10200;
     REQUIRE(actual == expected);
   }
@@ -638,5 +633,5 @@ TEST_CASE("test is_move_legal") {
     REQUIRE(board.is_move_legal(move, WHITE) == true);
   }
 }
-*/
+
 #endif
