@@ -37,33 +37,27 @@ void MoveGenerator::add_pseudo_legal_pawn_moves(Board &board, Color color, std::
   bitboard moving_pawns = board.get_piece_positions(PAWN, color);
   bitboard other_pieces = board.get_all_piece_positions(color);
   bitboard opposing_pieces = board.get_all_piece_positions(negate_color(color));
-  bitboard current_position, capture_squares, normal_capture_squares, promotion_capture_squares, single_push_squares, quiet_single_push_squares, promotion_push_squares, double_push_squares;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    current_position = moving_pawns & mask;
-    if(current_position) {
-      // Get single push destinations
-      single_push_squares = board.get_pawn_single_push(current_position, color) & ~opposing_pieces & ~other_pieces;
-      // Add quiet single push moves
-      quiet_single_push_squares = single_push_squares & ~promotion_file;
-      add_moves(current_position, quiet_single_push_squares, 0, moves);
-      // Add promotion single push moves
-      promotion_push_squares = single_push_squares & promotion_file;
-      add_promotion_moves(current_position, promotion_push_squares, false, moves);
 
-      // Add double push moves
-      double_push_squares = board.get_pawn_double_push(current_position, color) & ~opposing_pieces & ~other_pieces;
-      double_push_squares &= (color == WHITE ? single_push_squares << 8 : single_push_squares >> 8);
-      add_moves(current_position, double_push_squares, 1, moves);
+  while (moving_pawns) {
+    bitboard current_position = pop_lsb(moving_pawns);
+    bitboard single_push_squares = board.get_pawn_single_push(current_position, color) & ~opposing_pieces & ~other_pieces;
+    
+    bitboard quiet_single_push_squares = single_push_squares & ~promotion_file;
+    add_moves(current_position, quiet_single_push_squares, 0, moves);
+    
+    bitboard promotion_push_squares = single_push_squares & promotion_file;
+    add_promotion_moves(current_position, promotion_push_squares, false, moves);
 
-      // Get capture destinations
-      capture_squares = board.get_piece_attacks(PAWN, current_position, color) & opposing_pieces;
-      // Add normal capture moves
-      normal_capture_squares = capture_squares & ~promotion_file;
-      add_moves(current_position, normal_capture_squares, 4, moves);
-      // Add promotion capture moves
-      promotion_capture_squares = capture_squares & promotion_file;
-      add_promotion_moves(current_position, promotion_capture_squares, true, moves);
-    }
+    bitboard double_push_squares = board.get_pawn_double_push(current_position, color) & ~opposing_pieces & ~other_pieces & (color == WHITE ? single_push_squares << 8 : single_push_squares >> 8);
+    add_moves(current_position, double_push_squares, 1, moves);
+
+    bitboard capture_squares = board.get_piece_attacks(PAWN, current_position, color) & opposing_pieces;
+
+    bitboard normal_capture_squares = capture_squares & ~promotion_file;
+    add_moves(current_position, normal_capture_squares, 4, moves);
+
+    bitboard promotion_capture_squares = capture_squares & promotion_file;
+    add_promotion_moves(current_position, promotion_capture_squares, true, moves);
   }
 
   add_pseudo_legal_en_passant_moves(board, color, moves);
@@ -74,16 +68,13 @@ void MoveGenerator::add_pseudo_legal_piece_moves(Board &board, Color color, Piec
   bitboard other_pieces = board.get_all_piece_positions(color);
   bitboard opposing_pieces = board.get_all_piece_positions(negate_color(color));
 
-  bitboard current_position, destination_squares, quiet_squares, capture_squares;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    current_position = moving_pieces & mask;
-    if(current_position) {
-      destination_squares = board.get_piece_attacks(piece, current_position, color) & ~other_pieces;
-      quiet_squares = destination_squares & ~opposing_pieces;
-      add_moves(current_position, quiet_squares, 0, moves);
-      capture_squares = destination_squares & opposing_pieces;
-      add_moves(current_position, capture_squares, 4, moves);
-    }
+  while (moving_pieces) {
+    bitboard current_position = pop_lsb(moving_pieces);
+    bitboard destination_squares = board.get_piece_attacks(piece, current_position, color) & ~other_pieces;
+    bitboard quiet_squares = destination_squares & ~opposing_pieces;
+    add_moves(current_position, quiet_squares, 0, moves);
+    bitboard capture_squares = destination_squares & opposing_pieces;
+    add_moves(current_position, capture_squares, 4, moves);
   }
 }
 
@@ -105,13 +96,10 @@ void MoveGenerator::add_pseudo_legal_en_passant_moves(Board &board, Color color,
     destination_square = south(vulnerable_pawn);
   }
 
-  bitboard origin_square;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    origin_square = attack_pawns & mask;
-    if(origin_square) {
-      Move move(origin_square, destination_square, 5);
-      moves.push_back(move);
-    }
+  while (attack_pawns) {
+    bitboard origin_square = pop_lsb(attack_pawns);
+    Move move(origin_square, destination_square, 5);
+    moves.push_back(move);
   }
 }
 
@@ -138,11 +126,10 @@ void MoveGenerator::add_legal_kingside_castle_move(Board &board, Color color, st
   if(king_side_castle_path & other_pieces) return;
 
   // if castle path is attacked, don't add move
-  bitboard current_position;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    current_position = king_side_castle_path & mask;
-    if(current_position && board.is_position_attacked_by(current_position, negate_color(color))) {
-      return;
+  while (king_side_castle_path) {
+    bitboard current_position = pop_lsb(king_side_castle_path);
+    if (board.is_position_attacked_by(current_position, negate_color(color))) {
+	return;
     }
   }
 
@@ -171,10 +158,11 @@ void MoveGenerator::add_legal_queenside_castle_move(Board &board, Color color, s
   if(queen_side_possible_block_square & other_pieces) return;
 
   // if castle path is attacked, don't add move
-  bitboard current_position;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    current_position = queen_side_castle_path & mask;
-    if(current_position && board.is_position_attacked_by(current_position, negate_color(color))) return;
+  while (queen_side_castle_path) {
+    bitboard current_position = pop_lsb(queen_side_castle_path);
+    if (board.is_position_attacked_by(current_position, negate_color(color))) {
+      return;
+    }
   }
 
   // otherwise, add move
@@ -183,30 +171,20 @@ void MoveGenerator::add_legal_queenside_castle_move(Board &board, Color color, s
 }
 
 void MoveGenerator::add_moves(bitboard origin, bitboard all_destinations, char flag, std::vector<Move> &moves) {
-  bitboard current_destination;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    current_destination = all_destinations & mask;
-    if(current_destination) {
-      Move move(origin, current_destination, flag);
-      moves.push_back(move);
-    }
+  while (all_destinations) {
+    bitboard current_destination = pop_lsb(all_destinations);
+    Move move(origin, current_destination, flag);
+    moves.push_back(move);
   }
 }
 
 void MoveGenerator::add_promotion_moves(bitboard origin, bitboard all_destinations, bool capture, std::vector<Move> &moves) {
   int start_flag = capture ? 12 : 8;
-  bitboard current_destination;
-  for(bitboard mask = 1; mask > 0; mask <<= 1) {
-    current_destination = all_destinations & mask;
-    if(current_destination) {
-      /*
-      Move move(origin, current_destination, (capture == true ? 4 : 0));
+  while (all_destinations) {
+    bitboard current_destination = pop_lsb(all_destinations);
+    for (int i = 0; i < 4; i++) {
+      Move move(origin, current_destination, start_flag + i);
       moves.push_back(move);
-      */
-      for(int i = 0; i < 4; i++) {
-	Move move(origin, current_destination, start_flag + i);
-	moves.push_back(move);
-      }
     }
   }
 }
