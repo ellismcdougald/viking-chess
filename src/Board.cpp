@@ -240,11 +240,11 @@ bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
 }
 
 bitboard Board::get_pawn_single_push(bitboard position, Color color) {
-  return pawn_single_pushes_lookups[color][position];
+  return pawn_single_pushes_lookups[color][lsb(position)];
 }
 
 bitboard Board::get_pawn_double_push(bitboard position, Color color) {
-  return pawn_double_pushes_lookups[color][position];
+  return pawn_double_pushes_lookups[color][lsb(position)];
 }
 
 bitboard Board::get_blockers(bitboard position) {
@@ -434,7 +434,7 @@ void Board::remove_piece(Piece piece, Color color, bitboard position) {
 }
 
 void Board::execute_castle_move(bitboard king_origin, bitboard king_destination) {
-  bitboard rook_origin = castle_rook_origin_lookup[king_destination];
+  bitboard rook_origin = castle_rook_origin_lookup[lsb(king_destination)];
   bitboard rook_destination = castle_rook_destination_lookup[king_destination];
 
   move_piece(KING, turn_color, king_origin, king_destination);
@@ -443,11 +443,11 @@ void Board::execute_castle_move(bitboard king_origin, bitboard king_destination)
 
 // Attacks:
 bitboard Board::get_pawn_attacks(bitboard position, Color color) {
-  return pawn_attacks_lookups[color][position];
+  return pawn_attacks_lookups[color][lsb(position)];
 }
 
 bitboard Board::get_knight_attacks(bitboard position) {
-  return knight_moves_lookup[position];
+  return knight_moves_lookup[lsb(position)];
 }
 
 bitboard Board::get_bishop_attacks(bitboard position) {
@@ -471,7 +471,7 @@ bitboard Board::get_queen_attacks(bitboard position) {
 }
 
 bitboard Board::get_king_attacks(bitboard position) {
-  return king_moves_lookup[position];
+  return king_moves_lookup[lsb(position)];
 }
 
 bitboard Board::get_attacks_to_king(bitboard king_position, Color king_color) {
@@ -566,52 +566,58 @@ void Board::initialize_square_lookups() {
 }
 
 void Board::initialize_single_pawn_pushes_lookups() {
-  for(bitboard position = 1; position > 0; position <<= 1) {
-    pawn_single_pushes_lookups[WHITE][position] = north(position);
-    pawn_single_pushes_lookups[BLACK][position] = south(position);
+  for (int square_index = 0; square_index < 64; ++square_index) {
+    bitboard position = ((bitboard) 1) << square_index;
+    pawn_single_pushes_lookups[WHITE][square_index] = north(position);
+    pawn_single_pushes_lookups[BLACK][square_index] = south(position);
   }
 }
 
 void Board::initialize_double_pawn_pushes_lookups() {
-  for(bitboard position = 0x100; position <= 0x8000; position <<= 1) {
-    pawn_double_pushes_lookups[WHITE][position] = north(north(position));
+  for (int square_index = 8; square_index < 16; ++square_index) {
+    bitboard position = ((bitboard) 1) << square_index;
+    pawn_double_pushes_lookups[WHITE][square_index] = north(north(position));
   }
-  for(bitboard position = 0x1000000000000; position <= 0x80000000000000; position <<= 1) {
-    pawn_double_pushes_lookups[BLACK][position] = south(south(position));
+  for (int square_index = 48; square_index < 56; ++square_index) {
+    bitboard position = ((bitboard) 1) << square_index;
+    pawn_double_pushes_lookups[BLACK][square_index] = south(south(position));
   }
 }
 
 void Board::initialize_pawn_attacks_lookups() {
-  for(bitboard position = 1; position > 0; position <<= 1) {
-    pawn_attacks_lookups[WHITE][position] = east(north(position)) | west(north(position));
-    pawn_attacks_lookups[BLACK][position] = east(south(position)) | west(south(position));
+  for (int square_index = 0; square_index < 64; ++square_index) {
+    bitboard position = ((bitboard) 1) << square_index;
+    pawn_attacks_lookups[WHITE][square_index] = east(north(position)) | west(north(position));
+    pawn_attacks_lookups[BLACK][square_index] = east(south(position)) | west(south(position));
   }
 }
 
 void Board::initialize_knight_moves_lookup() {
-  for(bitboard position = 1; position > 0; position <<= 1) {
-    knight_moves_lookup[position] = east(north(north(position))) | west(north(north(position))) | east(south(south(position))) | west(south(south(position))) | north(east(east(position))) | north(west(west(position))) | south(east(east(position))) | south(west(west(position)));
+  for (int square_index = 0; square_index < 64; ++square_index) {
+    bitboard position = ((bitboard) 1) << square_index;
+    knight_moves_lookup[square_index] = east(north(north(position))) | west(north(north(position))) | east(south(south(position))) | west(south(south(position))) | north(east(east(position))) | north(west(west(position))) | south(east(east(position))) | south(west(west(position)));
   }
 }
 
 void Board::initialize_king_moves_lookup() {
-  for(bitboard position = 1; position > 0; position <<= 1) {
-    king_moves_lookup[position] = north(position) | east(position) | south(position) | west(position) | east(north(position)) | west(north(position)) | east(south(position)) | west(south(position));
+  for (int square_index = 0; square_index < 64; ++square_index) {
+    bitboard position = ((bitboard) 1) << square_index;
+    king_moves_lookup[square_index] = north(position) | east(position) | south(position) | west(position) | east(north(position)) | west(north(position)) | east(south(position)) | west(south(position));
   }
 }
 
 void Board::initialize_castle_rook_origin_lookup() {
-  castle_rook_origin_lookup[0x200000000000000] = 0x100000000000000;
-  castle_rook_origin_lookup[0x2000000000000000] = 0x8000000000000000;
-  castle_rook_origin_lookup[0x2] = 0x1;
-  castle_rook_origin_lookup[0x20] = 0x80;
+  castle_rook_origin_lookup[lsb(0x200000000000000)] = 0x100000000000000;
+  castle_rook_origin_lookup[lsb(0x2000000000000000)] = 0x8000000000000000;
+  castle_rook_origin_lookup[lsb(0x2)] = 0x1;
+  castle_rook_origin_lookup[lsb(0x20)] = 0x80;
 }
 
 void Board::initialize_castle_rook_destination_lookup() {
-  castle_rook_destination_lookup[0x200000000000000] = 0x400000000000000;
-  castle_rook_destination_lookup[0x2000000000000000] = 0x1000000000000000;
-  castle_rook_destination_lookup[0x2] = 0x4;
-  castle_rook_destination_lookup[0x20] = 0x10;
+  castle_rook_destination_lookup[lsb(0x200000000000000)] = 0x400000000000000;
+  castle_rook_destination_lookup[lsb(0x2000000000000000)] = 0x1000000000000000;
+  castle_rook_destination_lookup[lsb(0x2)] = 0x4;
+  castle_rook_destination_lookup[lsb(0x20)] = 0x10;
 }
 
 void Board::initialize_rook_attacks_magic_bb() {

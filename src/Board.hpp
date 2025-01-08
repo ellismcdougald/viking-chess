@@ -116,13 +116,14 @@ private:
   // Lookup Tables:
   std::map<int, bitboard> square_lookup;
   std::map<bitboard, int> square_index_lookup;
-  std::array<std::map<bitboard, bitboard>, 2> pawn_single_pushes_lookups;
-  std::array<std::map<bitboard, bitboard>, 2> pawn_double_pushes_lookups;
-  std::array<std::map<bitboard, bitboard>, 2> pawn_attacks_lookups;
-  std::map<bitboard, bitboard> knight_moves_lookup;
-  std::map<bitboard, bitboard> king_moves_lookup;
-  std::map<bitboard, bitboard> castle_rook_origin_lookup;
-  std::map<bitboard, bitboard> castle_rook_destination_lookup;
+  std::array<std::array<bitboard, 64>, 2> pawn_single_pushes_lookups;
+  std::array<std::array<bitboard, 64>, 2> pawn_double_pushes_lookups;
+  std::array<std::array<bitboard, 64>, 2> pawn_attacks_lookups;
+  std::array<bitboard, 64> knight_moves_lookup;
+  std::array<bitboard, 64> king_moves_lookup;
+  std::array<bitboard, 64> castle_rook_origin_lookup;
+  std::array<bitboard, 64> castle_rook_destination_lookup;
+  
   // Magic Bitboards:
   std::array<std::array<bitboard, 4096>, 64> rook_attacks_magic_bb;
   std::array<std::array<bitboard, 4096>, 64> bishop_attacks_magic_bb;
