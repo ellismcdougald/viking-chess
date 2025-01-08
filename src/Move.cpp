@@ -10,43 +10,29 @@
 
 // Constructor:
 Move::Move(char origin_column, uint8_t origin_row, char dest_column, char dest_row, char flag) {
-  set_origin_column(origin_column);
-  set_origin_row(origin_row);
-  set_dest_column(dest_column);
-  set_dest_row(dest_row);
+  bitboard origin = get_position_from_row_col(origin_row - 1, origin_column - 97);
+  bitboard destination = get_position_from_row_col(dest_row - 1, dest_column - 97);
+  set_origin(origin);
+  set_destination(destination);
   set_flag(flag);
 }
 
 Move::Move(bitboard origin, bitboard destination, char flag) {
-  std::string origin_str = get_row_col_from_position(origin);
-  std::string dest_str = get_row_col_from_position(destination);
+  //std::string origin_str = get_row_col_from_position(origin);
+  //std::string dest_str = get_row_col_from_position(destination);
 
-  set_origin_column(origin_str[0]);
-  set_origin_row(origin_str[1] - '0');
-  set_dest_column(dest_str[0]);
-  set_dest_row(dest_str[1] - '0');
+  //set_origin_column(origin_str[0]);
+  //set_origin_row(origin_str[1] - '0');
+  //set_dest_column(dest_str[0]);
+  //set_dest_row(dest_str[1] - '0');
+  set_origin(origin);
+  set_destination(destination);
   set_flag(flag);
 }
 
+Move::Move() {}
+
 // Getters:
-bitboard Move::get_origin() {
-  uint8_t origin_row_int = (0x1C00 & move_rep) >> 10; // 0 - 7
-  uint8_t origin_col_int = (0xE000 & move_rep) >> 13; // 0 - 7
-
-  return get_position_from_row_col(origin_row_int, origin_col_int);
-}
-
-bitboard Move::get_destination() {
-  uint8_t dest_row_int = (0x70 & move_rep) >> 4; // 0 - 7
-  uint8_t dest_col_int = (0x380 & move_rep) >> 7; // 0 - 7
-
-  return get_position_from_row_col(dest_row_int, dest_col_int);
-}
-
-bitboard Move::get_flags() {
-  return move_rep & 0xF;
-}
-
 bool Move::is_double_pawn_push() {
   return get_flags() == 1;
 }
@@ -77,11 +63,6 @@ void Move::set_dest_row(char dest_row) {
   dest_row -= 1;
   move_rep &= ~0x0070;
   move_rep |= (dest_row << 4);
-}
-
-void Move::set_flag(char flag) {
-  move_rep &= ~0xF;
-  move_rep |= flag;
 }
 
 // Printers:
