@@ -48,4 +48,19 @@ uint64_t get_position_from_row_col(uint8_t row, uint8_t col);
 void print_bitboard(bitboard bb);
 bitboard position_string_to_bitboard(std::string position_str);
 
+// https://chessprogramming.wikispaces.com/Population+Count
+inline unsigned popcount(bitboard bb) {
+  return __builtin_popcount(bb);
+}
+
+inline bitboard lsb(bitboard bb) {
+  return __builtin_ctzl(bb);
+}
+
+inline bitboard pop_lsb(bitboard& bb) {
+  const bitboard square = 0x8000000000000000 >> (63 - __builtin_ctzl(bb));
+  bb &= bb - 1;
+  return square;
+}
+
 #endif
