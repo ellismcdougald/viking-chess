@@ -451,7 +451,7 @@ bitboard Board::get_knight_attacks(bitboard position) {
 }
 
 bitboard Board::get_bishop_attacks(bitboard position) {
-  int square_index = square_index_lookup[position];
+  int square_index = lsb(position);
   bitboard blockers = (get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK)) & BISHOP_MASKS[square_index];
   uint64_t key = (blockers * BISHOP_MAGICS[square_index]) >> BISHOP_SHIFTS[square_index];
   bitboard result = bishop_attacks_magic_bb[square_index][key];
@@ -459,7 +459,7 @@ bitboard Board::get_bishop_attacks(bitboard position) {
 }
 
 bitboard Board::get_rook_attacks(bitboard position) {
-  int square_index = square_index_lookup[position];
+  int square_index = lsb(position);
   bitboard blockers = (get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK)) & ROOK_MASKS[square_index];
   uint64_t key = (blockers * ROOK_MAGICS[square_index]) >> ROOK_SHIFTS[square_index];
   bitboard result = rook_attacks_magic_bb[square_index][key];
