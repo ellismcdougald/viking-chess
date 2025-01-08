@@ -1,7 +1,7 @@
+#include "globals.hpp"
+
 #ifndef GLOBALS_CPP // GUARD
 #define GLOBALS_CPP
-
-#include "globals.hpp"
 
 uint64_t get_position_from_row_col(uint8_t row, uint8_t col) {
   uint64_t position = 1;
