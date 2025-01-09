@@ -199,7 +199,7 @@ uint64_t MoveGenerator::perft(int depth, Board &board, Color color) {
   int n_moves = legal_moves.size();
 
   for(int i = 0; i < n_moves; i++) {
-    std::array<std::array<bitboard, 6>, 2> piece_bitboards = board.get_piece_bitboards();
+    std::array<std::array<bitboard, 7>, 2> piece_bitboards = board.get_piece_bitboards();
     std::array<std::array<bool, 2>, 2> can_castle = board.get_can_castle();
     board.execute_move(legal_moves[i]);
     nodes += perft(depth - 1, board, negate_color(color));
