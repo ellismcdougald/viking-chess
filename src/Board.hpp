@@ -34,15 +34,15 @@ public:
   void initialize_fen(std::string fen);
 
   // Getters:
-  bitboard get_piece_positions(Piece piece, Color color);
-  bitboard get_all_piece_positions(Color color);
+  inline bitboard get_piece_positions(Piece piece, Color color) { return piece_bitboards[color][piece]; }
+  inline bitboard get_all_piece_positions(Color color) { return piece_bitboards[color][ALL]; }
   Piece get_piece_at_position(bitboard position, Color color);
   Move get_last_move(Color color);
   bool is_moves_empty(Color color);
   bool get_can_castle_queen(Color color);
   bool get_can_castle_king(Color color);
   Color get_turn_color();
-  std::array<std::array<bitboard, 6>, 2>& get_piece_bitboards();
+  std::array<std::array<bitboard, 7>, 2>& get_piece_bitboards();
   std::array<std::array<bool, 2>, 2>& get_can_castle();
   int get_square_index(bitboard square);
   bitboard get_square(int square_index);
@@ -66,7 +66,6 @@ public:
 
   // Moves:
   void execute_move(Move &move);
-  void execute_move(std::string move_str);
   void undo_move(Move &move);
 
   // Print:
@@ -78,7 +77,8 @@ private:
   std::array<std::vector<Piece>, 2> captured_pieces;
   std::array<std::array<bool, 2>, 2> can_castle; // index 0 is kingside, index 1 is queenside
   std::array<std::array<bool, 2>, 2> previous_can_castle; // index 0 is kingside, index 1 is queenside
-  std::array<std::array<bitboard, 6>, 2> piece_bitboards; // COLOR, PIECE
+  std::array<std::array<bitboard, 7>, 2> piece_bitboards; // COLOR, PIECE
+  std::array<bitboard, 7> all_piece_bitboards; // all pieces of a type (regardless of color)
 
   std::array<std::vector<std::array<bool, 2> >, 2> previous_can_castle_stacks;
 
@@ -87,6 +87,7 @@ private:
   void set_piece(Piece piece, Color color, bitboard position);
   void remove_piece(Piece piece, Color color, bitboard position);
   void execute_castle_move(bitboard origin, bitboard destination);
+  void undo_castle_move(bitboard king_origin, bitboard king_destination);
 
   // Castling:
   void update_castle_rights(Move &move, Piece moving_piece); // Called by execute_move

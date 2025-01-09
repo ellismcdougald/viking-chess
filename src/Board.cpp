@@ -13,6 +13,7 @@
 Board::Board() {
   piece_bitboards[0].fill(0);
   piece_bitboards[1].fill(0);
+  all_piece_bitboards.fill(0);
   turn_color = WHITE;
   initialize_lookups();
   can_castle[WHITE].fill(true);
@@ -22,6 +23,7 @@ Board::Board() {
 void Board::clear() {
   piece_bitboards[0].fill(0);
   piece_bitboards[1].fill(0);
+  all_piece_bitboards.fill(0);
   turn_color = WHITE;
   can_castle[WHITE].fill(true);
   can_castle[BLACK].fill(true);
@@ -35,6 +37,9 @@ void Board::initialize_board_starting_position() {
   piece_bitboards[WHITE][ROOK] = starting_white_rook_position;
   piece_bitboards[WHITE][QUEEN] = starting_white_queen_position;
   piece_bitboards[WHITE][KING] = starting_white_king_position;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    piece_bitboards[WHITE][ALL] |= piece_bitboards[WHITE][piece_index];
+  }
 
   piece_bitboards[BLACK][PAWN] = starting_black_pawn_position;
   piece_bitboards[BLACK][KNIGHT] = starting_black_knight_position;
@@ -42,6 +47,13 @@ void Board::initialize_board_starting_position() {
   piece_bitboards[BLACK][ROOK] = starting_black_rook_position;
   piece_bitboards[BLACK][QUEEN] = starting_black_queen_position;
   piece_bitboards[BLACK][KING] = starting_black_king_position;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    piece_bitboards[BLACK][ALL] |= piece_bitboards[BLACK][piece_index];
+  }
+
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    all_piece_bitboards[piece_index] = piece_bitboards[WHITE][piece_index] | piece_bitboards[BLACK][piece_index];
+  }
 };
 
 void Board::initialize_perft_position_2() {
@@ -126,25 +138,14 @@ bitboard Board::get_end_edge_mask(Direction direction) {
 }
 
 // Getters:
-bitboard Board::get_piece_positions(Piece piece, Color color) {
-  return piece_bitboards[color][piece];
-}
-
-bitboard Board::get_all_piece_positions(Color color) {
-  bitboard result = 0;
-  for(int piece_index = 0; piece_index < 6; piece_index++) {
-    result |= piece_bitboards[color][piece_index];
-  }
-  return result;
-}
-
 Piece Board::get_piece_at_position(bitboard position, Color color) {
-  std::array<Piece, 6> piece_array = {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
-  for(int i = 0; i < 6; i++) {
-    if(piece_bitboards[color][i] & position) {
-      return piece_array[i];
-    }
-  }
+  if (!(piece_bitboards[color][ALL] & position)) return NONE;
+  if (piece_bitboards[color][PAWN] & position) return PAWN;
+  if (piece_bitboards[color][KNIGHT] & position) return KNIGHT;
+  if (piece_bitboards[color][BISHOP] & position) return BISHOP;
+  if (piece_bitboards[color][ROOK] & position) return ROOK;
+  if (piece_bitboards[color][QUEEN] & position) return QUEEN;
+  if (piece_bitboards[color][KING] & position) return KING;
   return NONE;
 }
 
@@ -169,7 +170,7 @@ Color Board::get_turn_color() {
   return turn_color;
 }
 
-std::array<std::array<bitboard, 6>, 2>& Board::get_piece_bitboards() {
+std::array<std::array<bitboard, 7>, 2>& Board::get_piece_bitboards() {
   return piece_bitboards;
 }
 
@@ -187,7 +188,11 @@ bitboard Board::get_square(int square_index) {
 
 // Setters:
 void Board::set_piece_positions(Piece piece, Color color, bitboard new_positions) {
+  all_piece_bitboards[piece] &= ~piece_bitboards[color][piece];
+  piece_bitboards[color][ALL] &= ~piece_bitboards[color][piece];
   piece_bitboards[color][piece] = new_positions;
+  all_piece_bitboards[piece] |= new_positions;
+  piece_bitboards[color][ALL] |= new_positions;
 }
 
 void Board::set_can_castle_queen(Color color, bool new_can_castle_queen) {
@@ -226,7 +231,7 @@ bool Board::is_position_attacked_by(bitboard position, Color color) {
 }
 
 bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
-  assert(piece != NONE);
+  assert(piece != NONE && piece != ALL);
   switch(piece) {
   case PAWN: return get_pawn_attacks(position, color);
   case KNIGHT: return get_knight_attacks(position);
@@ -234,6 +239,7 @@ bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
   case ROOK: return get_rook_attacks(position);
   case QUEEN: return get_queen_attacks(position);
   case KING: return get_king_attacks(position);
+  case ALL: return 0;
   case NONE: return 0;
   }
   return 0;
@@ -267,7 +273,7 @@ void Board::execute_move(Move &move) {
 
   Piece moving_piece = get_piece_at_position(origin, turn_color);
   update_castle_rights(move, moving_piece);
-  
+
   if(move_flags == 0 || move_flags == 1) { // Quiet move
     move_piece(moving_piece, turn_color, origin, destination);
   } else if(move_flags == 2 || move_flags == 3) { // Castle move
@@ -300,30 +306,6 @@ void Board::execute_move(Move &move) {
   set_turn_color(negate_color(turn_color));
 }
 
-
-void Board::execute_move(std::string move_str) {
-  int move_flag;
-  
-  std::string start_str = move_str.substr(0, 2);
-  std::string end_str = move_str.substr(2, 3);
-  //bitboard start_position = position_string_to_bitboard(start_str);
-  bitboard end_position = position_string_to_bitboard(end_str);
-
-  Piece end_piece = get_piece_at_position(end_position, negate_color(turn_color));
-  if(end_piece == 6) { // move is not capture
-    if(turn_color == WHITE && start_str[1] == '2' && end_str[1] == '4') {
-      move_flag = 1;
-    } else if(turn_color == BLACK && start_str[1] == '7' && end_str[1] == '5') {
-      move_flag = 1;
-    }
-    move_flag = 0;
-  } else { // move is capture
-    std::cout << "test\n";
-
-  }
-}
-
-
 // Opposite of execute_move
 void Board::undo_move(Move &move) {
   set_turn_color(negate_color(turn_color));
@@ -339,7 +321,7 @@ void Board::undo_move(Move &move) {
   if(move_flags == 0 || move_flags == 1) { // Quiet move
     move_piece(moved_piece, turn_color, destination, origin);
   } else if(move_flags == 2 || move_flags == 3) { // Castle move
-    execute_castle_move(origin, destination);
+    undo_castle_move(origin, destination);
   } else if(move_flags == 4) { // capture move
     assert(captured_pieces[turn_color].size() > 0);
     Piece captured_piece = captured_pieces[turn_color].back();
@@ -413,32 +395,45 @@ void Board::update_castle_rights(Move &move, Piece moving_piece) {
 }
 
 void Board::revert_castle_rights(Color color) {
-  //can_castle[color] = previous_can_castle[color];
   can_castle[color] = previous_can_castle_stacks[turn_color].back();
   previous_can_castle_stacks[turn_color].pop_back();
 }
 
 // Moves:
 void Board::move_piece(Piece piece, Color color, bitboard origin, bitboard destination) {
-  piece_bitboards[color][piece] ^= (origin | destination);
+  piece_bitboards[color][piece] ^= (origin | destination); // piece bitboard
+  piece_bitboards[color][ALL] ^= (origin | destination); // color all piece bitboard
+  all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
 }
 
 void Board::set_piece(Piece piece, Color color, bitboard position) {
   assert((piece_bitboards[color][piece] & position) == 0);
   piece_bitboards[color][piece] |= position;
+  piece_bitboards[color][ALL] |= position;
+  all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
 }
 
 void Board::remove_piece(Piece piece, Color color, bitboard position) {
   assert(piece_bitboards[color][piece] & position);
   piece_bitboards[color][piece] &= ~position;
+  piece_bitboards[color][ALL] &= ~position;
+  all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
 }
 
 void Board::execute_castle_move(bitboard king_origin, bitboard king_destination) {
   bitboard rook_origin = castle_rook_origin_lookup[lsb(king_destination)];
-  bitboard rook_destination = castle_rook_destination_lookup[king_destination];
+  bitboard rook_destination = castle_rook_destination_lookup[lsb(king_destination)];
 
   move_piece(KING, turn_color, king_origin, king_destination);
   move_piece(ROOK, turn_color, rook_origin, rook_destination);
+}
+
+void Board::undo_castle_move(bitboard king_origin, bitboard king_destination) {
+  bitboard rook_origin = castle_rook_origin_lookup[lsb(king_destination)];
+  bitboard rook_destination = castle_rook_destination_lookup[lsb(king_destination)];
+
+  move_piece(KING, turn_color, king_destination, king_origin);
+  move_piece(ROOK, turn_color, rook_destination, rook_origin);
 }
 
 // Attacks:
