@@ -16,8 +16,8 @@ Board::Board() {
   all_piece_bitboards.fill(0);
   turn_color = WHITE;
   initialize_lookups();
-  can_castle[WHITE].fill(true);
-  can_castle[BLACK].fill(true);
+  castle_rights = 0xF;
+  castle_rights_size = 0;
 }
 
 void Board::clear() {
@@ -25,8 +25,6 @@ void Board::clear() {
   piece_bitboards[1].fill(0);
   all_piece_bitboards.fill(0);
   turn_color = WHITE;
-  can_castle[WHITE].fill(true);
-  can_castle[BLACK].fill(true);
 }
 
 // Initializer:
@@ -159,11 +157,11 @@ bool Board::is_moves_empty(Color color) {
 }
 
 bool Board::get_can_castle_queen(Color color) {
-  return can_castle[color][1];
+  return castle_rights & (0x4 >> (color << 1));
 }
 
 bool Board::get_can_castle_king(Color color) {
-  return can_castle[color][0];
+  return castle_rights & (0x8 >> (color << 1));
 }
 
 Color Board::get_turn_color() {
@@ -172,10 +170,6 @@ Color Board::get_turn_color() {
 
 std::array<std::array<bitboard, 7>, 2>& Board::get_piece_bitboards() {
   return piece_bitboards;
-}
-
-std::array<std::array<bool, 2>, 2>& Board::get_can_castle() {
-  return can_castle;
 }
 
 int Board::get_square_index(bitboard square) {
@@ -193,14 +187,6 @@ void Board::set_piece_positions(Piece piece, Color color, bitboard new_positions
   piece_bitboards[color][piece] = new_positions;
   all_piece_bitboards[piece] |= new_positions;
   piece_bitboards[color][ALL] |= new_positions;
-}
-
-void Board::set_can_castle_queen(Color color, bool new_can_castle_queen) {
-  can_castle[color][1] = new_can_castle_queen;
-}
-
-void Board::set_can_castle_king(Color color, bool new_can_castle_king) {
-  can_castle[color][0] = new_can_castle_king;
 }
 
 void Board::set_turn_color(Color new_turn_color) {
@@ -379,24 +365,24 @@ void Board::print() {
 // Castling:
 void Board::update_castle_rights(Move &move, Piece moving_piece) {
   bitboard origin = move.get_origin();
-  //previous_can_castle[turn_color] = can_castle[turn_color];
-  previous_can_castle_stacks[turn_color].push_back(can_castle[turn_color]);
-  
-  if(moving_piece == KING) {
-    set_can_castle_king(turn_color, false);
-    set_can_castle_queen(turn_color, false);
-  } else if(moving_piece == ROOK) {
+  //previous_castle_rights.push_back(castle_rights);
+  previous_castle_rights[castle_rights_size++] = castle_rights;
+  if (moving_piece == KING) {
+    clear_king_castle_right(turn_color);
+    clear_queen_castle_right(turn_color);
+  } else if (moving_piece == ROOK) {
     if((turn_color == WHITE && origin == 0x80) || (turn_color == BLACK && origin == 0x8000000000000000)) {
-      set_can_castle_queen(turn_color, false);
+      clear_queen_castle_right(turn_color);
     } else if((turn_color == WHITE && origin == 1) || (turn_color == BLACK && origin == 0x100000000000000)) {
-      set_can_castle_king(turn_color, false);
+      clear_king_castle_right(turn_color);
     }
   }
 }
 
 void Board::revert_castle_rights(Color color) {
-  can_castle[color] = previous_can_castle_stacks[turn_color].back();
-  previous_can_castle_stacks[turn_color].pop_back();
+  castle_rights = previous_castle_rights[--castle_rights_size];
+  //castle_rights = previous_castle_rights.back();
+  //previous_castle_rights.pop_back();
 }
 
 // Moves:

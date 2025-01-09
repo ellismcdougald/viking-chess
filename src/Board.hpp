@@ -43,15 +43,12 @@ public:
   bool get_can_castle_king(Color color);
   Color get_turn_color();
   std::array<std::array<bitboard, 7>, 2>& get_piece_bitboards();
-  std::array<std::array<bool, 2>, 2>& get_can_castle();
   int get_square_index(bitboard square);
   bitboard get_square(int square_index);
   bitboard get_blockers(bitboard position);
 
   // Setters:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);
-  void set_can_castle_queen(Color color, bool new_can_castle_queen);
-  void set_can_castle_king(Color color, bool new_can_castle_king);
   void set_turn_color(Color new_turn_color);
 
   // Board logic:
@@ -75,12 +72,18 @@ private:
   Color turn_color; // color who has the current turn
   std::array<std::vector<Move>, 2> moves;
   std::array<std::vector<Piece>, 2> captured_pieces;
-  std::array<std::array<bool, 2>, 2> can_castle; // index 0 is kingside, index 1 is queenside
-  std::array<std::array<bool, 2>, 2> previous_can_castle; // index 0 is kingside, index 1 is queenside
   std::array<std::array<bitboard, 7>, 2> piece_bitboards; // COLOR, PIECE
   std::array<bitboard, 7> all_piece_bitboards; // all pieces of a type (regardless of color)
-
   std::array<std::vector<std::array<bool, 2> >, 2> previous_can_castle_stacks;
+
+  // Castle rights:
+  uint8_t castle_rights; // uses the lower 4 bits: white king side, white queen side, black king side, black queen side
+  inline void set_king_castle_right(Color color) { castle_rights |= (0x8 >> (color << 1)); }
+  inline void set_queen_castle_right(Color color) { castle_rights |= (0x4 >> (color << 1)); }
+  inline void clear_king_castle_right(Color color) { castle_rights &= ~(0x8 >> (color << 1)); }
+  inline void clear_queen_castle_right(Color color) { castle_rights &= ~(0x4 >> (color << 1)); }
+  uint8_t previous_castle_rights[512];
+  size_t castle_rights_size;
 
   // Moves -- Called by execute_move, undo_move
   void move_piece(Piece piece, Color color, bitboard origin, bitboard destination);
