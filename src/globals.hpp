@@ -7,7 +7,7 @@
 
 typedef uint64_t bitboard;
 
-enum Piece {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE};
+enum Piece {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, ALL, NONE};
 enum Color {WHITE, BLACK};
 enum Direction {NORTH, EAST, SOUTH, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST};
 
@@ -42,7 +42,7 @@ inline bitboard south(bitboard position) { return (position & ~RANK_1) >> 8; }
 inline bitboard east(bitboard position) { return (position & ~FILE_H) >> 1; }
 inline bitboard west(bitboard position) { return (position & ~FILE_A) << 1; }
 
-inline Color negate_color(Color color) { return (color == WHITE ? BLACK : WHITE); }
+inline Color negate_color(Color color) { return (Color) (color ^ 1); }
 
 uint64_t get_position_from_row_col(uint8_t row, uint8_t col);
 void print_bitboard(bitboard bb);
