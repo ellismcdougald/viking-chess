@@ -86,6 +86,9 @@ void Board::initialize_perft_position_2() {
   piece_bitboards[WHITE][ROOK] = 0x81;
   piece_bitboards[WHITE][QUEEN] = 0x40000;
   piece_bitboards[WHITE][KING] = 0x8;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    piece_bitboards[WHITE][ALL] |= piece_bitboards[WHITE][piece_index];
+  }
 
   piece_bitboards[BLACK][PAWN] = 0xB40A0040010000;
   piece_bitboards[BLACK][KNIGHT] = 0x440000000000;
@@ -93,16 +96,47 @@ void Board::initialize_perft_position_2() {
   piece_bitboards[BLACK][ROOK] = 0x8100000000000000;
   piece_bitboards[BLACK][QUEEN] = 0x8000000000000;
   piece_bitboards[BLACK][KING] = 0x800000000000000;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    piece_bitboards[BLACK][ALL] |= piece_bitboards[BLACK][piece_index];
+  }
+
+  for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    all_piece_bitboards[piece_index] = piece_bitboards[WHITE][piece_index] | piece_bitboards[BLACK][piece_index];
+
+    bitboard piece_bitboard = all_piece_bitboards[piece_index];
+    while (piece_bitboard) {
+      board_pieces[lsb(piece_bitboard)] = (Piece) piece_index;
+      piece_bitboard &= piece_bitboard - 1;
+    }
+  }
 }
 
 void Board::initialize_perft_position_3() {
   piece_bitboards[WHITE][PAWN] = 0x4000000A00;
   piece_bitboards[WHITE][ROOK] = 0x40000000;
   piece_bitboards[WHITE][KING] = 0x8000000000;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    piece_bitboards[WHITE][ALL] |= piece_bitboards[WHITE][piece_index];
+  }
 
   piece_bitboards[BLACK][PAWN] = 0x20100004000000;
   piece_bitboards[BLACK][ROOK] = 0x100000000;
   piece_bitboards[BLACK][KING] = 0x1000000;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    piece_bitboards[BLACK][ALL] |= piece_bitboards[BLACK][piece_index];
+  }
+
+  for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
+  for (int piece_index = 0; piece_index < 6; ++piece_index) {
+    all_piece_bitboards[piece_index] = piece_bitboards[WHITE][piece_index] | piece_bitboards[BLACK][piece_index];
+
+    bitboard piece_bitboard = all_piece_bitboards[piece_index];
+    while (piece_bitboard) {
+      board_pieces[lsb(piece_bitboard)] = (Piece) piece_index;
+      piece_bitboard &= piece_bitboard - 1;
+    }
+  }
 }
 
 /**
@@ -204,6 +238,10 @@ void Board::set_piece_positions(Piece piece, Color color, bitboard new_positions
   piece_bitboards[color][piece] = new_positions;
   all_piece_bitboards[piece] |= new_positions;
   piece_bitboards[color][ALL] |= new_positions;
+
+  while (new_positions) {
+    board_pieces[pop_lsb(new_positions)] = piece;
+  }
 }
 
 void Board::set_turn_color(Color new_turn_color) {
@@ -234,6 +272,7 @@ bool Board::is_position_attacked_by(bitboard position, Color color) {
 }
 
 bitboard Board::get_piece_attacks(Piece piece, bitboard position, Color color) {
+  assert(position);
   assert(piece != NONE && piece != ALL);
   switch(piece) {
   case PAWN: return get_pawn_attacks(position, color);
@@ -439,14 +478,17 @@ void Board::undo_castle_move(bitboard king_origin, bitboard king_destination) {
 
 // Attacks:
 bitboard Board::get_pawn_attacks(bitboard position, Color color) {
+  if (!position) return 0;
   return pawn_attacks_lookups[color][lsb(position)];
 }
 
 bitboard Board::get_knight_attacks(bitboard position) {
+  if (!position) return 0;
   return knight_moves_lookup[lsb(position)];
 }
 
 bitboard Board::get_bishop_attacks(bitboard position) {
+  if (!position) return 0;
   int square_index = lsb(position);
   bitboard blockers = (get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK)) & BISHOP_MASKS[square_index];
   uint64_t key = (blockers * BISHOP_MAGICS[square_index]) >> BISHOP_SHIFTS[square_index];
@@ -455,6 +497,7 @@ bitboard Board::get_bishop_attacks(bitboard position) {
 }
 
 bitboard Board::get_rook_attacks(bitboard position) {
+  if (!position) return 0;
   int square_index = lsb(position);
   bitboard blockers = (get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK)) & ROOK_MASKS[square_index];
   uint64_t key = (blockers * ROOK_MAGICS[square_index]) >> ROOK_SHIFTS[square_index];
@@ -463,10 +506,12 @@ bitboard Board::get_rook_attacks(bitboard position) {
 }
 
 bitboard Board::get_queen_attacks(bitboard position) {
+  if (!position) return 0;
   return get_rook_attacks(position) | get_bishop_attacks(position);
 }
 
 bitboard Board::get_king_attacks(bitboard position) {
+  if (!position) return 0;
   return king_moves_lookup[lsb(position)];
 }
 
