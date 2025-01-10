@@ -53,12 +53,12 @@ inline unsigned popcount(bitboard bb) {
   return __builtin_popcount(bb);
 }
 
-inline bitboard lsb(bitboard bb) {
+inline int lsb(bitboard bb) {
   return __builtin_ctzl(bb);
 }
 
 inline bitboard pop_lsb(bitboard& bb) {
-  const bitboard square = 0x8000000000000000 >> (63 - __builtin_ctzl(bb));
+  bitboard square = ((uint64_t) 1) << __builtin_ctzl(bb);
   bb &= bb - 1;
   return square;
 }
