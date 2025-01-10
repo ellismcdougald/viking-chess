@@ -9,7 +9,6 @@
 #define BOARD_HPP // GUARD
 
 #include <stdint.h>
-#include <vector>
 #include <array>
 #include <map>
 #include <stack>
@@ -69,12 +68,16 @@ public:
   void print();
 
 private:
+  // NEW:
+  
+  
   Color turn_color; // color who has the current turn
-  std::array<std::vector<Move>, 2> moves;
-  std::array<std::vector<Piece>, 2> captured_pieces;
+  Move moves[2][256];
+  size_t moves_size[2];
+  Piece captured_pieces[2][16];
+  size_t captured_pieces_size[2];
   std::array<std::array<bitboard, 7>, 2> piece_bitboards; // COLOR, PIECE
   std::array<bitboard, 7> all_piece_bitboards; // all pieces of a type (regardless of color)
-  std::array<std::vector<std::array<bool, 2> >, 2> previous_can_castle_stacks;
   std::array<Piece, 64> board_pieces;
 
   // Castle rights:

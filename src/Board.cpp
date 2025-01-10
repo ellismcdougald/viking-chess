@@ -19,6 +19,10 @@ Board::Board() {
   castle_rights = 0xF;
   castle_rights_size = 0;
   for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
+  moves_size[0] = 0;
+  moves_size[1] = 0;
+  captured_pieces_size[0] = 0;
+  captured_pieces_size[1] = 0;
 }
 
 void Board::clear() {
@@ -162,12 +166,11 @@ Piece Board::get_piece_at_position(bitboard position, Color color) {
 }
 
 Move Board::get_last_move(Color color) {
-  assert(moves[color].size() > 0);
-  return moves[color][moves[color].size() - 1];
+  return moves[color][moves_size[color] - 1];
 }
 
 bool Board::is_moves_empty(Color color) {
-  return moves[color].size() == 0;
+  return moves[color] == 0;
 }
 
 bool Board::get_can_castle_queen(Color color) {
@@ -283,11 +286,11 @@ void Board::execute_move(Move &move) {
     assert(captured_piece != NONE);
     remove_piece(captured_piece, negate_color(turn_color), destination);
     move_piece(moving_piece, turn_color, origin, destination);
-    captured_pieces[turn_color].push_back(captured_piece);
+    captured_pieces[turn_color][captured_pieces_size[turn_color]++] = captured_piece;
   } else if(move_flags == 5) { // en passant move
     bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
     Piece captured_piece = get_piece_at_position(capture_square, negate_color(turn_color));
-    captured_pieces[turn_color].push_back(captured_piece);
+    captured_pieces[turn_color][captured_pieces_size[turn_color]++] = captured_piece;
     move_piece(moving_piece, turn_color, origin, destination);
     remove_piece(captured_piece, negate_color(turn_color), capture_square);
   } else { // promotion  move
@@ -296,12 +299,12 @@ void Board::execute_move(Move &move) {
     if(move_flags >= 12 && move_flags <= 15) {
       Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
       remove_piece(captured_piece, negate_color(turn_color), destination);
-      captured_pieces[turn_color].push_back(captured_piece);
+      captured_pieces[turn_color][captured_pieces_size[turn_color]++] = captured_piece;
     }
     set_piece(promotion_piece, turn_color, destination);
   }
 
-  moves[turn_color].push_back(move);
+  moves[turn_color][moves_size[turn_color]++] = move;
 
   set_turn_color(negate_color(turn_color));
 }
@@ -323,16 +326,12 @@ void Board::undo_move(Move &move) {
   } else if(move_flags == 2 || move_flags == 3) { // Castle move
     undo_castle_move(origin, destination);
   } else if(move_flags == 4) { // capture move
-    assert(captured_pieces[turn_color].size() > 0);
-    Piece captured_piece = captured_pieces[turn_color].back();
-    captured_pieces[turn_color].pop_back();
+    Piece captured_piece = captured_pieces[turn_color][--captured_pieces_size[turn_color]];
     move_piece(moved_piece, turn_color, destination, origin);
     set_piece(captured_piece, negate_color(turn_color), destination);
   } else if(move_flags == 5) { // en passant move
     bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
-    assert(captured_pieces[turn_color].size() > 0);
-    Piece captured_piece = captured_pieces[turn_color].back();
-    captured_pieces[turn_color].pop_back();
+    Piece captured_piece = captured_pieces[turn_color][--captured_pieces_size[turn_color]];
     move_piece(moved_piece, turn_color, destination, origin);
     set_piece(captured_piece, negate_color(turn_color), capture_square);
   } else { // promotion move
@@ -341,14 +340,12 @@ void Board::undo_move(Move &move) {
     set_piece(moved_piece, turn_color, origin);
     remove_piece(promotion_piece, turn_color, destination);
     if(move_flags >= 12 && move_flags <= 15) {
-      assert(captured_pieces[turn_color].size() > 0);
-      Piece captured_piece = captured_pieces[turn_color].back();
-      captured_pieces[turn_color].pop_back();
+      Piece captured_piece = captured_pieces[turn_color][--captured_pieces_size[turn_color]];
       set_piece(captured_piece, negate_color(turn_color), destination);
     }
   }
 
-  moves[turn_color].pop_back();
+  --moves_size[turn_color];
 }
 
 // Print:
@@ -379,7 +376,6 @@ void Board::print() {
 // Castling:
 void Board::update_castle_rights(Move &move, Piece moving_piece) {
   bitboard origin = move.get_origin();
-  //previous_castle_rights.push_back(castle_rights);
   previous_castle_rights[castle_rights_size++] = castle_rights;
   if (moving_piece == KING) {
     clear_king_castle_right(turn_color);
@@ -395,8 +391,6 @@ void Board::update_castle_rights(Move &move, Piece moving_piece) {
 
 void Board::revert_castle_rights(Color color) {
   castle_rights = previous_castle_rights[--castle_rights_size];
-  //castle_rights = previous_castle_rights.back();
-  //previous_castle_rights.pop_back();
 }
 
 // Moves:
