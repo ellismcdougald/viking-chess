@@ -68,9 +68,6 @@ public:
   void print();
 
 private:
-  // NEW:
-  
-  
   Color turn_color; // color who has the current turn
   Move moves[2][256];
   size_t moves_size[2];
