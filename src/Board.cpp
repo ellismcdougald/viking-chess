@@ -23,6 +23,8 @@ Board::Board() {
   moves_size[1] = 0;
   captured_pieces_size[0] = 0;
   captured_pieces_size[1] = 0;
+  half_moves = 0;
+  full_moves = 1;
 }
 
 void Board::clear() {
@@ -30,6 +32,15 @@ void Board::clear() {
   piece_bitboards[1].fill(0);
   all_piece_bitboards.fill(0);
   turn_color = WHITE;
+  castle_rights = 0xF;
+  castle_rights_size = 0;
+  for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
+  moves_size[0] = 0;
+  moves_size[1] = 0;
+  captured_pieces_size[0] = 0;
+  captured_pieces_size[1] = 0;
+  half_moves = 0;
+  full_moves = 1;
 }
 
 // Initializer:
@@ -139,23 +150,19 @@ void Board::initialize_perft_position_3() {
   }
 }
 
-/**
- ** This only supports position and turn color. The remaining information in the fen string is discarded. The engine does not use this function-- it is for testing only.
- **/
 void Board::initialize_fen(std::string fen) {
   bitboard current_position = 0x8000000000000000;
   std::istringstream fen_ss(fen);
 
-  std::string pieces_str, color_str, castle_string, ep_string, half_clock_str, full_clock_str;
-    
+  std::string pieces_str;
   fen_ss >> pieces_str;
   Piece piece_to_place;
   Color piece_color;
   int numSpaces;
-  for(int i = 0; i < pieces_str.length(); i++) {
-    if(pieces_str[i] == '/') continue;
-    else if(isdigit(pieces_str[i])) {
-      for(int j = 0; j < pieces_str[i] - '0'; j++) current_position >>= 1;
+  for (int i = 0; i < pieces_str.length(); i++) {
+    if (pieces_str[i] == '/') continue;
+    else if (isdigit(pieces_str[i])) {
+      for (int j = 0; j < pieces_str[i] - '0'; j++) current_position >>= 1;
     } else {
       piece_color = isupper(pieces_str[i]) ? WHITE : BLACK;
       piece_to_place = get_piece_from_char(pieces_str[i]);
@@ -164,12 +171,50 @@ void Board::initialize_fen(std::string fen) {
     }
   }
 
+  std::string color_str;
   fen_ss >> color_str;
-  if(!(color_str == "w" | color_str == "b")) {
+  if (!(color_str == "w" | color_str == "b")) {
     std::cout << "Invalid fen." << std::endl;
     return;
   }
   set_turn_color(color_str == "w" ? WHITE : BLACK);
+
+  castle_rights = 0; // clear castle rights
+  std::string castle_str;
+  fen_ss >> castle_str;
+  for (int i = 0; i < castle_str.length(); ++i) {
+    if (castle_str[i] == 'K') {
+      set_king_castle_right(WHITE);
+    } else if (castle_str[i] == 'Q') {
+      set_queen_castle_right(WHITE);
+    } else if (castle_str[i] == 'k') {
+      set_king_castle_right(BLACK);
+    } else {
+      set_queen_castle_right(BLACK);
+    }
+  }
+
+  // En passant
+  // Add a double pawn push move corresponding to the given en passant square
+  std::string ep_str;
+  fen_ss >> ep_str;
+  if (ep_str != "-") {
+    Color move_color = negate_color(turn_color);
+    bitboard ep_square = position_string_to_bitboard(ep_str);
+    bitboard above = north(ep_square);
+    bitboard below = south(ep_square);
+    if (move_color == WHITE) {
+      Move move(below, above, 1);
+      moves[move_color][moves_size[move_color]++] = move;
+    } else {
+      Move move(above, below, 1);
+      moves[move_color][moves_size[move_color]++] = move;
+    }
+  }
+
+  fen_ss >> half_moves;
+  
+  fen_ss >> full_moves;
 }
 
 Piece Board::get_piece_from_char(char piece_char) {
@@ -204,7 +249,7 @@ Move Board::get_last_move(Color color) {
 }
 
 bool Board::is_moves_empty(Color color) {
-  return moves[color] == 0;
+  return moves_size[color] == 0;
 }
 
 bool Board::get_can_castle_queen(Color color) {
@@ -240,7 +285,8 @@ void Board::set_piece_positions(Piece piece, Color color, bitboard new_positions
   piece_bitboards[color][ALL] |= new_positions;
 
   while (new_positions) {
-    board_pieces[pop_lsb(new_positions)] = piece;
+    board_pieces[lsb(new_positions)] = piece;
+    pop_lsb(new_positions);
   }
 }
 

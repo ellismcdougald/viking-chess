@@ -16,6 +16,65 @@ TEST_CASE("test inititalize_fen") {
 
   SECTION("starting position") {
     board.initialize_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    REQUIRE(board.get_piece_positions(ROOK, WHITE) == 0x81);
+    REQUIRE(board.get_piece_positions(KNIGHT, WHITE) == 0x42);
+    REQUIRE(board.get_piece_positions(BISHOP, WHITE) == 0x24);
+    REQUIRE(board.get_piece_positions(QUEEN, WHITE) == 0x10);
+    REQUIRE(board.get_piece_positions(KING, WHITE) == 0x8);
+    REQUIRE(board.get_piece_positions(PAWN, WHITE) == 0xFF00);
+    REQUIRE(board.get_piece_positions(ROOK, BLACK) == 0x8100000000000000);
+    REQUIRE(board.get_piece_positions(KNIGHT, BLACK) == 0x4200000000000000);
+    REQUIRE(board.get_piece_positions(BISHOP, BLACK) == 0x2400000000000000);
+    REQUIRE(board.get_piece_positions(QUEEN, BLACK) == 0x1000000000000000);
+    REQUIRE(board.get_piece_positions(KING, BLACK) == 0x800000000000000);
+    REQUIRE(board.get_piece_positions(PAWN, BLACK) == 0x00FF000000000000);
+    for (int piece_index = 0; piece_index < 6; piece_index++) {
+      bitboard piece_bitboard = board.get_all_positions_by_piece((Piece) piece_index);
+      while (piece_bitboard) {
+	REQUIRE(board.get_piece_at_position(pop_lsb(piece_bitboard), WHITE) == ((Piece) piece_index));
+      }
+    }
+    REQUIRE(board.get_turn_color() == WHITE);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
+    REQUIRE(board.is_moves_empty(WHITE) == true);
+    REQUIRE(board.is_moves_empty(BLACK) == true);
+    REQUIRE(board.get_half_moves() == 0);
+    REQUIRE(board.get_full_moves() == 1);
+  }
+
+  SECTION("after move e4") {
+    board.initialize_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    REQUIRE(board.get_piece_positions(ROOK, WHITE) == 0x81);
+    REQUIRE(board.get_piece_positions(KNIGHT, WHITE) == 0x42);
+    REQUIRE(board.get_piece_positions(BISHOP, WHITE) == 0x24);
+    REQUIRE(board.get_piece_positions(QUEEN, WHITE) == 0x10);
+    REQUIRE(board.get_piece_positions(KING, WHITE) == 0x8);
+    REQUIRE(board.get_piece_positions(PAWN, WHITE) == 0x800F700);
+    REQUIRE(board.get_piece_positions(ROOK, BLACK) == 0x8100000000000000);
+    REQUIRE(board.get_piece_positions(KNIGHT, BLACK) == 0x4200000000000000);
+    REQUIRE(board.get_piece_positions(BISHOP, BLACK) == 0x2400000000000000);
+    REQUIRE(board.get_piece_positions(QUEEN, BLACK) == 0x1000000000000000);
+    REQUIRE(board.get_piece_positions(KING, BLACK) == 0x800000000000000);
+    REQUIRE(board.get_piece_positions(PAWN, BLACK) == 0x00FF000000000000);
+    for (int piece_index = 0; piece_index < 6; piece_index++) {
+      bitboard piece_bitboard = board.get_all_positions_by_piece((Piece) piece_index);
+      while (piece_bitboard) {
+	REQUIRE(board.get_piece_at_position(pop_lsb(piece_bitboard), WHITE) == ((Piece) piece_index));
+      }
+    }
+    REQUIRE(board.get_turn_color() == BLACK);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
+    REQUIRE(board.is_moves_empty(WHITE) == false);
+    REQUIRE(board.get_last_move(WHITE).get_flags() == 1);
+    REQUIRE(board.is_moves_empty(BLACK) == true);
+    REQUIRE(board.get_half_moves() == 0);
+    REQUIRE(board.get_full_moves() == 1);
   }
 }
 

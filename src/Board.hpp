@@ -35,6 +35,7 @@ public:
   // Getters:
   inline bitboard get_piece_positions(Piece piece, Color color) { return piece_bitboards[color][piece]; }
   inline bitboard get_all_piece_positions(Color color) { return piece_bitboards[color][ALL]; }
+  inline bitboard get_all_positions_by_piece(Piece piece) { return all_piece_bitboards[piece]; }
   Piece get_piece_at_position(bitboard position, Color color);
   Move get_last_move(Color color);
   bool is_moves_empty(Color color);
@@ -45,6 +46,8 @@ public:
   int get_square_index(bitboard square);
   bitboard get_square(int square_index);
   bitboard get_blockers(bitboard position);
+  inline unsigned get_half_moves() { return half_moves; }
+  inline unsigned get_full_moves() { return full_moves; }
 
   // Setters:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);
@@ -76,6 +79,8 @@ private:
   std::array<std::array<bitboard, 7>, 2> piece_bitboards; // COLOR, PIECE
   std::array<bitboard, 7> all_piece_bitboards; // all pieces of a type (regardless of color)
   std::array<Piece, 64> board_pieces;
+  unsigned half_moves;
+  unsigned full_moves;
 
   // Castle rights:
   uint8_t castle_rights; // uses the lower 4 bits: white king side, white queen side, black king side, black queen side
