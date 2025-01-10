@@ -55,6 +55,7 @@ public:
   inline bitboard get_flags() { return move_rep & 0xF; }
   bool is_double_pawn_push();
   bool is_null();
+  inline bool is_castle() { return get_flags() == 2 || get_flags() == 3; }
 
   // Setters:
   inline void set_origin(bitboard origin) { move_rep = move_rep & 0x3FF | (lsb(origin) << 10); }
