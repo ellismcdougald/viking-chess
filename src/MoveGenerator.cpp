@@ -11,13 +11,11 @@ MoveList MoveGenerator::generate_legal_moves(Board &board, Color color) {
   
   MoveList pseudo_legal_moves = generate_pseudo_legal_moves(board, color);
   for(int i = 0; i < pseudo_legal_moves.size(); i++) {
-    if(board.is_move_legal(pseudo_legal_moves[i], color)) {
+    if(pseudo_legal_moves[i].is_castle() || board.is_move_legal(pseudo_legal_moves[i], color)) {
       legal_moves.add_move(pseudo_legal_moves[i]);
     }
   }
-
-  add_legal_castle_moves(board, color, legal_moves);
-
+  
   return legal_moves;
 }
 
@@ -29,6 +27,9 @@ MoveList MoveGenerator::generate_pseudo_legal_moves(Board &board, Color color) {
   add_pseudo_legal_piece_moves(board, color, ROOK, pseudo_legal_moves);
   add_pseudo_legal_piece_moves(board, color, QUEEN, pseudo_legal_moves);
   add_pseudo_legal_piece_moves(board, color, KING, pseudo_legal_moves);
+
+  add_legal_castle_moves(board, color, pseudo_legal_moves);
+  
   return pseudo_legal_moves;
 }
 
@@ -73,6 +74,7 @@ void MoveGenerator::add_pseudo_legal_piece_moves(Board &board, Color color, Piec
     bitboard current_position = pop_lsb(moving_pieces);
     bitboard destination_squares = board.get_piece_attacks(piece, current_position, color) & ~other_pieces;
     bitboard quiet_squares = destination_squares & ~opposing_pieces;
+    
     add_moves(current_position, quiet_squares, 0, moves);
     bitboard capture_squares = destination_squares & opposing_pieces;
     add_moves(current_position, capture_squares, 4, moves);
@@ -261,7 +263,6 @@ uint64_t MoveGenerator::divide(int depth, Board &board, Color color) {
 uint64_t MoveGenerator::fast_perft(int depth, Board &board) {
   MoveList legal_moves = generate_legal_moves(board, board.get_turn_color());
   int num_moves = legal_moves.size();
-
   uint64_t nodes = 0;
 
   if(depth == 1) {
@@ -279,7 +280,7 @@ uint64_t MoveGenerator::fast_perft(int depth, Board &board) {
 
 uint64_t MoveGenerator::pl_perft(int depth, Board& board) {
   if (depth == 0) return 1;
-  
+
   MoveList pseudo_legal_moves = generate_pseudo_legal_moves(board, board.get_turn_color());
   int num_moves = pseudo_legal_moves.size();
   uint64_t nodes = 0;
