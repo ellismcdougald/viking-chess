@@ -8,6 +8,7 @@
 #include "MoveGenerator.hpp"
 #include "Evaluation.hpp"
 #include "Board.hpp"
+#include "MoveList.hpp"
 
 class Search {
 public:

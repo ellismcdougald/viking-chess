@@ -17,8 +17,8 @@ Move Search::get_best_move() {
 int Search::alpha_beta_max_root(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval) {
   if(depth_left == 0) return eval.evaluate(board);
 
-  std::vector<Move> moves = move_gen.generate_legal_moves(board, board.get_turn_color());
-  if(moves.empty()) {
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  if(moves.size() == 0) {
     Move null_move(0, 0, 0);
     best_move = null_move;
     return 0;
@@ -46,7 +46,7 @@ int Search::alpha_beta_max_root(int alpha, int beta, int depth_left, Board &boar
 int Search::alpha_beta_max(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval) {
   if(depth_left == 0) return eval.evaluate(board);
 
-  std::vector<Move> moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
   int score;
   for(int i = 0; i < moves.size(); i++) {
     board.execute_move(moves[i]);
@@ -65,7 +65,7 @@ int Search::alpha_beta_max(int alpha, int beta, int depth_left, Board &board, Mo
 int Search::alpha_beta_min(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval) {
   if(depth_left == 0) return -eval.evaluate(board);
 
-  std::vector<Move> moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
   int score;
   for(int i = 0; i < moves.size(); i++) {
     board.execute_move(moves[i]);
