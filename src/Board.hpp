@@ -75,6 +75,7 @@ private:
   std::array<std::array<bitboard, 7>, 2> piece_bitboards; // COLOR, PIECE
   std::array<bitboard, 7> all_piece_bitboards; // all pieces of a type (regardless of color)
   std::array<std::vector<std::array<bool, 2> >, 2> previous_can_castle_stacks;
+  std::array<Piece, 64> board_pieces;
 
   // Castle rights:
   uint8_t castle_rights; // uses the lower 4 bits: white king side, white queen side, black king side, black queen side
@@ -116,6 +117,7 @@ private:
   Piece get_promotion_piece_from_flags(uint8_t flags);
   Piece get_piece_from_char(char piece_char);
   bitboard get_end_edge_mask(Direction direction);
+  void verify_board_pieces_consistency();
 
   // Lookup Tables:
   std::map<int, bitboard> square_lookup;

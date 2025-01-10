@@ -18,6 +18,7 @@ Board::Board() {
   initialize_lookups();
   castle_rights = 0xF;
   castle_rights_size = 0;
+  for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
 }
 
 void Board::clear() {
@@ -52,6 +53,26 @@ void Board::initialize_board_starting_position() {
   for (int piece_index = 0; piece_index < 6; ++piece_index) {
     all_piece_bitboards[piece_index] = piece_bitboards[WHITE][piece_index] | piece_bitboards[BLACK][piece_index];
   }
+
+  board_pieces[0] = ROOK;
+  board_pieces[1] = KNIGHT;
+  board_pieces[2] = BISHOP;
+  board_pieces[3] = KING;
+  board_pieces[4] = QUEEN;
+  board_pieces[5] = BISHOP;
+  board_pieces[6] = KNIGHT;
+  board_pieces[7] = ROOK;
+  for (int i = 8; i < 16; i++) board_pieces[i] = PAWN;
+  for (int i = 16; i < 48; i++) board_pieces[i] = NONE;
+  for (int i = 48; i < 56; i++) board_pieces[i] = PAWN;
+  board_pieces[56] = ROOK;
+  board_pieces[57] = KNIGHT;
+  board_pieces[58] = BISHOP;
+  board_pieces[59] = KING;
+  board_pieces[60] = QUEEN;
+  board_pieces[61] = BISHOP;
+  board_pieces[62] = KNIGHT;
+  board_pieces[63] = ROOK;
 };
 
 void Board::initialize_perft_position_2() {
@@ -137,14 +158,7 @@ bitboard Board::get_end_edge_mask(Direction direction) {
 
 // Getters:
 Piece Board::get_piece_at_position(bitboard position, Color color) {
-  if (!(piece_bitboards[color][ALL] & position)) return NONE;
-  if (piece_bitboards[color][PAWN] & position) return PAWN;
-  if (piece_bitboards[color][KNIGHT] & position) return KNIGHT;
-  if (piece_bitboards[color][BISHOP] & position) return BISHOP;
-  if (piece_bitboards[color][ROOK] & position) return ROOK;
-  if (piece_bitboards[color][QUEEN] & position) return QUEEN;
-  if (piece_bitboards[color][KING] & position) return KING;
-  return NONE;
+  return board_pieces[lsb(position)];
 }
 
 Move Board::get_last_move(Color color) {
@@ -267,8 +281,8 @@ void Board::execute_move(Move &move) {
   } else if(move_flags == 4) { // capture move
     Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
     assert(captured_piece != NONE);
-    move_piece(moving_piece, turn_color, origin, destination);
     remove_piece(captured_piece, negate_color(turn_color), destination);
+    move_piece(moving_piece, turn_color, origin, destination);
     captured_pieces[turn_color].push_back(captured_piece);
   } else if(move_flags == 5) { // en passant move
     bitboard capture_square = (turn_color == WHITE ? south(destination) : north(destination));
@@ -279,12 +293,12 @@ void Board::execute_move(Move &move) {
   } else { // promotion  move
     Piece promotion_piece = get_promotion_piece_from_flags(move_flags);
     remove_piece(moving_piece, turn_color, origin);
-    set_piece(promotion_piece, turn_color, destination);
     if(move_flags >= 12 && move_flags <= 15) {
       Piece captured_piece = get_piece_at_position(destination, negate_color(turn_color));
       remove_piece(captured_piece, negate_color(turn_color), destination);
       captured_pieces[turn_color].push_back(captured_piece);
     }
+    set_piece(promotion_piece, turn_color, destination);
   }
 
   moves[turn_color].push_back(move);
@@ -390,6 +404,9 @@ void Board::move_piece(Piece piece, Color color, bitboard origin, bitboard desti
   piece_bitboards[color][piece] ^= (origin | destination); // piece bitboard
   piece_bitboards[color][ALL] ^= (origin | destination); // color all piece bitboard
   all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
+
+  board_pieces[lsb(origin)] = NONE;
+  board_pieces[lsb(destination)] = piece;
 }
 
 void Board::set_piece(Piece piece, Color color, bitboard position) {
@@ -397,6 +414,8 @@ void Board::set_piece(Piece piece, Color color, bitboard position) {
   piece_bitboards[color][piece] |= position;
   piece_bitboards[color][ALL] |= position;
   all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
+
+  board_pieces[lsb(position)] = piece;
 }
 
 void Board::remove_piece(Piece piece, Color color, bitboard position) {
@@ -404,6 +423,8 @@ void Board::remove_piece(Piece piece, Color color, bitboard position) {
   piece_bitboards[color][piece] &= ~position;
   piece_bitboards[color][ALL] &= ~position;
   all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
+
+  board_pieces[lsb(position)] = NONE;
 }
 
 void Board::execute_castle_move(bitboard king_origin, bitboard king_destination) {
@@ -520,6 +541,18 @@ Piece Board::get_promotion_piece_from_flags(uint8_t flags) {
   case 15: return QUEEN;
   }
   return NONE;
+}
+
+void Board::verify_board_pieces_consistency() {
+  for (int square_index = 0; square_index < 64; square_index++) {
+    bitboard square = ((uint64_t) 1) << square_index;
+    Piece square_piece = board_pieces[square_index];
+    if (square_piece == NONE) {
+      assert(!((get_all_piece_positions(WHITE) | get_all_piece_positions(BLACK)) & square));
+    } else {
+      assert(all_piece_bitboards[square_piece] & square);
+    }
+  }
 }
 
 // Lookup Tables:
