@@ -42,6 +42,42 @@ int Search::alpha_beta_max_root(int alpha, int beta, int depth_left, Board &boar
   return alpha;
 }
 
+int Search::alpha_beta_max_root(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval, unsigned time_limit) {
+  if(depth_left == 0) return eval.evaluate(board);
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
+
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  if(moves.size() == 0) {
+    Move null_move(0, 0, 0);
+    best_move = null_move;
+    return 0;
+  } else {
+    best_move = moves[0];
+  }
+  
+  int score;
+  for(int i = 0; i < moves.size(); i++) {
+    std::chrono::time_point<std::chrono::high_resolution_clock> current_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time);
+    if (elapsed_time.count() > 0.75 * time_limit) {
+      return alpha;
+    }
+    
+    board.execute_move(moves[i]);
+    score = alpha_beta_min(alpha, beta, depth_left - 1, board, move_gen, eval);
+    board.undo_move(moves[i]);
+    if(score >= beta) {
+      return beta;
+    }
+    if(score > alpha) {
+      best_move = moves[i];
+      alpha = score;
+    }
+  }
+  return alpha;
+}
+
 // Alpha beta:
 int Search::alpha_beta_max(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval) {
   if(depth_left == 0) return eval.evaluate(board);
