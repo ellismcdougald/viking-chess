@@ -17,7 +17,6 @@ void Uci::loop() {
   std::string token;
 
   while (std::getline(std::cin, line)) {
-    std::cout << line << std::endl;
     std::istringstream input(line);
     token.clear();
     input >> std::skipws >> token;
