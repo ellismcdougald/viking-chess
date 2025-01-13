@@ -150,7 +150,9 @@ void Board::initialize_perft_position_3() {
   }
 }
 
-void Board::initialize_fen(std::string fen) {
+bool Board::initialize_fen(std::string fen) {
+  clear();
+  
   bitboard current_position = 0x8000000000000000;
   std::istringstream fen_ss(fen);
 
@@ -175,7 +177,7 @@ void Board::initialize_fen(std::string fen) {
   fen_ss >> color_str;
   if (!(color_str == "w" | color_str == "b")) {
     std::cout << "Invalid fen." << std::endl;
-    return;
+    return false;
   }
   set_turn_color(color_str == "w" ? WHITE : BLACK);
 
@@ -215,6 +217,8 @@ void Board::initialize_fen(std::string fen) {
   fen_ss >> half_moves;
   
   fen_ss >> full_moves;
+
+  return true;
 }
 
 Piece Board::get_piece_from_char(char piece_char) {

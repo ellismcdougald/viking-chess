@@ -30,7 +30,7 @@ public:
   void initialize_board_starting_position();
   void initialize_perft_position_2();
   void initialize_perft_position_3();
-  void initialize_fen(std::string fen);
+  bool initialize_fen(std::string fen);
 
   // Getters:
   inline bitboard get_piece_positions(Piece piece, Color color) { return piece_bitboards[color][piece]; }
