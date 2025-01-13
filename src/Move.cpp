@@ -18,13 +18,6 @@ Move::Move(char origin_column, uint8_t origin_row, char dest_column, char dest_r
 }
 
 Move::Move(bitboard origin, bitboard destination, char flag) {
-  //std::string origin_str = get_row_col_from_position(origin);
-  //std::string dest_str = get_row_col_from_position(destination);
-
-  //set_origin_column(origin_str[0]);
-  //set_origin_row(origin_str[1] - '0');
-  //set_dest_column(dest_str[0]);
-  //set_dest_row(dest_str[1] - '0');
   set_origin(origin);
   set_destination(destination);
   set_flag(flag);
