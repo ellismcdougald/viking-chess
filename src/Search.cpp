@@ -113,4 +113,36 @@ int Search::alpha_beta_min(int alpha, int beta, int depth_left, Board &board, Mo
   return beta;
 }
 
+// Negamax:
+int Search::negamax(int depth, Board& board, MoveGenerator& move_gen, Evaluation& eval) {
+  if (depth == 0) return eval.evaluate(board);
+  int best_score = -999999;
+  int score = 0;
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  for (int i = 0; i < moves.size(); i++) {
+    board.execute_move(moves[i]);
+    score = -negamax(depth - 1, board, move_gen, eval);
+    board.undo_move(moves[i]);
+    if (score > best_score) best_score = score;
+  }
+  return best_score;
+}
+
+int Search::negamax_root(int depth, Board& board, MoveGenerator& move_gen, Evaluation &eval) {
+  int best_score = -999999;
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  for (int i = 0; i < moves.size(); i++) {
+    board.execute_move(moves[i]);
+    int score = -negamax(depth, board, move_gen, eval);
+    board.undo_move(moves[i]);
+
+    if (score > best_score) {
+      best_score = score;
+      best_move = moves[i];
+    }
+  }
+  return best_score;
+}
+
+
 #endif // GUARD

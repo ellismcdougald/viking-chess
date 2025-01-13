@@ -27,6 +27,11 @@ public:
   int alpha_beta_min(int alpha, int beta, int depth_left, Board &board, MoveGenerator &move_gen, Evaluation &eval);
 private:
   Move best_move;
+
+  // Negamax:
+  int negamax(int depth, Board& board, MoveGenerator& move_gen, Evaluation& eval);
+  int negamax_root(int depth, Board& board, MoveGenerator& move_gen, Evaluation &eval);
+  // TODO implement iterative deepening with time management
 };
 
 #endif // GUARD

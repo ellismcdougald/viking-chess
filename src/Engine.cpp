@@ -33,7 +33,8 @@ bool Engine::play_move(std::string move_str) {
 
 void Engine::search_best_move() {
   unsigned search_time = get_time_for_move();
-  search.alpha_beta_max_root(-10000, 10000, 5, board, move_gen, eval, search_time);
+  //search.alpha_beta_max_root(-10000, 10000, 5, board, move_gen, eval, search_time);
+  search.negamax_root(3, board, move_gen, eval);
   Move move = search.get_best_move();
   std::cout << "bestmove " << move.to_uci_notation() << std::endl;
 }
