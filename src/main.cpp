@@ -1,8 +1,8 @@
-#include "Game.hpp"
+#include "Uci.hpp"
 
 int main() {
-  Game game;
-  game.run_game();
+  Uci uci;
+  uci.loop();
   
   return 0;
 }

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(ChessEngine VERSION 1.0)
 
-set (CMAKE_CXX_FLAGS "-Dprivate=public")
+set (CMAKE_CXX_FLAGS "-Dprivate=public -std=c++11")
 Include(FetchContent)
 FetchContent_Declare(
   Catch2
@@ -10,7 +10,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(main main.cpp Board.cpp Move.cpp MoveGenerator.cpp MoveList.cpp Evaluation.cpp Search.cpp globals.cpp Uci.cpp)
+add_executable(main main.cpp Board.cpp Move.cpp MoveGenerator.cpp MoveList.cpp Evaluation.cpp Search.cpp globals.cpp Uci.cpp Engine.cpp)
 
 add_executable(perft perft.cpp Board.cpp Move.cpp MoveGenerator.cpp MoveList.cpp globals.cpp)
 
