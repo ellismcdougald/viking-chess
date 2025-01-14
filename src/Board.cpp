@@ -5,6 +5,7 @@
 #include <string>
 #include <bit>
 #include <bitset>
+#include <random>
 #include "Board.hpp"
 #include "Move.hpp"
 #include "globals.hpp"
@@ -16,6 +17,7 @@ Board::Board() {
   all_piece_bitboards.fill(0);
   turn_color = WHITE;
   initialize_lookups();
+  init_zobrist_keys();
   castle_rights = 0xF;
   castle_rights_size = 0;
   for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
@@ -25,6 +27,7 @@ Board::Board() {
   captured_pieces_size[1] = 0;
   half_moves = 0;
   full_moves = 1;
+  zkey = generate_zkey();
 }
 
 void Board::clear() {
@@ -32,6 +35,7 @@ void Board::clear() {
   piece_bitboards[1].fill(0);
   all_piece_bitboards.fill(0);
   turn_color = WHITE;
+  zkey ^= side_zkey;
   castle_rights = 0xF;
   castle_rights_size = 0;
   for (int i = 0; i < 64; i++) board_pieces[i] = NONE;
@@ -41,6 +45,7 @@ void Board::clear() {
   captured_pieces_size[1] = 0;
   half_moves = 0;
   full_moves = 1;
+  zkey = generate_zkey();
 }
 
 // Initializer:
@@ -88,6 +93,8 @@ void Board::initialize_board_starting_position() {
   board_pieces[61] = BISHOP;
   board_pieces[62] = KNIGHT;
   board_pieces[63] = ROOK;
+
+  zkey = generate_zkey();
 };
 
 void Board::initialize_perft_position_2() {
@@ -121,6 +128,8 @@ void Board::initialize_perft_position_2() {
       piece_bitboard &= piece_bitboard - 1;
     }
   }
+
+  zkey = generate_zkey();
 }
 
 void Board::initialize_perft_position_3() {
@@ -148,6 +157,8 @@ void Board::initialize_perft_position_3() {
       piece_bitboard &= piece_bitboard - 1;
     }
   }
+
+  zkey = generate_zkey();
 }
 
 bool Board::initialize_fen(std::string fen) {
@@ -217,6 +228,8 @@ bool Board::initialize_fen(std::string fen) {
   fen_ss >> half_moves;
   
   fen_ss >> full_moves;
+
+  zkey = generate_zkey();
 
   return true;
 }
@@ -290,12 +303,14 @@ void Board::set_piece_positions(Piece piece, Color color, bitboard new_positions
 
   while (new_positions) {
     board_pieces[lsb(new_positions)] = piece;
+    zkey ^= piece_square_zkeys[color][piece][lsb(new_positions)];
     pop_lsb(new_positions);
   }
 }
 
 void Board::set_turn_color(Color new_turn_color) {
-  turn_color = new_turn_color;
+    turn_color = new_turn_color;
+    zkey ^= side_zkey;
 }
 
 // Board Logic:
@@ -366,6 +381,11 @@ void Board::execute_move(Move &move) {
   Piece moving_piece = get_piece_at_position(origin, turn_color);
   update_castle_rights(move, moving_piece);
 
+  if (move_flags == 1) {
+    int file_index = 7 - (lsb(origin) % 8);
+    zkey ^= en_passant_zkeys[file_index];
+  }
+
   if(move_flags == 0 || move_flags == 1) { // Quiet move
     move_piece(moving_piece, turn_color, origin, destination);
   } else if(move_flags == 2 || move_flags == 3) { // Castle move
@@ -393,9 +413,18 @@ void Board::execute_move(Move &move) {
     set_piece(promotion_piece, turn_color, destination);
   }
 
+  Move last_move = get_last_move(negate_color(turn_color));
+  if (last_move.get_flags() == 1) {
+    bitboard last_origin = last_move.get_origin();
+    int file_index = 7 - (lsb(last_origin) % 8);
+    zkey ^= en_passant_zkeys[file_index];
+  }
+
   moves[turn_color][moves_size[turn_color]++] = move;
 
   set_turn_color(negate_color(turn_color));
+
+  assert(zkey == generate_zkey());
 }
 
 // Opposite of execute_move
@@ -434,13 +463,29 @@ void Board::undo_move(Move &move) {
     }
   }
 
+  // undo ep square if neccessary
+  if (move_flags == 1) {
+    int file_index = 7 - (lsb(origin) % 8);
+    zkey ^= en_passant_zkeys[file_index];
+  }
+
   --moves_size[turn_color];
+
+  // put previous ep square back in hash if neccessary
+  Move last_move = get_last_move(negate_color(turn_color));
+  if (last_move.get_flags() == 1) {
+    bitboard last_origin = last_move.get_origin();
+    int file_index = 7 - (lsb(last_origin) % 8);
+    zkey ^= en_passant_zkeys[file_index];
+  }
+
+  assert(zkey == generate_zkey());
 }
 
 // Print:
 void Board::print() {
   std::string separator_line(17, '-');
-  std::array<char, 7> piece_chars = {'p', 'n', 'b', 'r', 'q', 'k', ' '};
+  std::array<char, 8> piece_chars = {'p', 'n', 'b', 'r', 'q', 'k', ' ', ' '};
   bitboard mask = 0x8000000000000000;
   Piece current_piece;
   std::cout << " " << separator_line << std::endl;
@@ -462,24 +507,95 @@ void Board::print() {
   std::cout << "  A B C D E F G H" << std::endl;
 }
 
+// Zobrist Keys:
+void Board::init_zobrist_keys() {
+  std::mt19937_64 rand_num_gen(1);
+
+  for (int color_index = 0; color_index < 2; ++color_index) {
+    for (int piece_index = 0; piece_index < 6; ++piece_index) {
+      for (int square_index = 0; square_index < 64; ++square_index) {
+	piece_square_zkeys[color_index][piece_index][square_index] = rand_num_gen();
+      }
+    }
+  }
+
+  side_zkey = rand_num_gen();
+
+  for (int i = 0; i < 4; ++i) {
+    castling_zkeys[i] = rand_num_gen();
+  }
+
+  for (int i = 0; i < 8; ++i) {
+    en_passant_zkeys[i] = rand_num_gen();
+  }
+}
+
+uint64_t Board::generate_zkey() {
+  uint64_t new_zkey = 1;
+  
+  for (Color color = WHITE; color <= BLACK; color = (Color) (color + 1)) {
+    for (Piece piece = PAWN; piece <= KING; piece = (Piece) (piece + 1)) {
+      bitboard piece_positions = get_piece_positions(piece, color);
+      while (piece_positions) {
+	int square_index = lsb(piece_positions);
+	new_zkey ^= piece_square_zkeys[color][piece][square_index];
+	piece_positions &= piece_positions - 1; // pop
+      }
+    }
+  }
+
+  int castle_rights_index = 0;
+  for (uint8_t mask = 0x8; mask > 0; mask >>= 1) {
+    if (castle_rights & mask) {
+      new_zkey ^= castling_zkeys[castle_rights_index];
+    }
+    ++castle_rights_index;
+  }
+
+  
+  if (!is_moves_empty(negate_color(turn_color))) {
+    Move last_move = get_last_move(negate_color(turn_color));
+    if (last_move.get_flags() == 1) {
+      bitboard origin = last_move.get_origin();
+      bitboard file_masks[8] = {FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H};
+      for (int file_index = 0; file_index < 8; ++file_index) {
+	if (origin & file_masks[file_index]) {
+	  new_zkey ^= en_passant_zkeys[file_index];
+	  break;
+	}
+      }
+    }
+  }
+
+  if (turn_color == WHITE) new_zkey ^= side_zkey;
+
+  return new_zkey;
+}
+
 // Castling:
 void Board::update_castle_rights(Move &move, Piece moving_piece) {
   bitboard origin = move.get_origin();
   previous_castle_rights[castle_rights_size++] = castle_rights;
   if (moving_piece == KING) {
-    clear_king_castle_right(turn_color);
-    clear_queen_castle_right(turn_color);
+    if (get_can_castle_king(turn_color)) clear_king_castle_right(turn_color);
+    if (get_can_castle_queen(turn_color)) clear_queen_castle_right(turn_color);
   } else if (moving_piece == ROOK) {
     if((turn_color == WHITE && origin == 0x80) || (turn_color == BLACK && origin == 0x8000000000000000)) {
-      clear_queen_castle_right(turn_color);
+      if (get_can_castle_queen(turn_color)) clear_queen_castle_right(turn_color);
     } else if((turn_color == WHITE && origin == 1) || (turn_color == BLACK && origin == 0x100000000000000)) {
-      clear_king_castle_right(turn_color);
+      if (get_can_castle_king(turn_color)) clear_king_castle_right(turn_color);
     }
   }
 }
 
 void Board::revert_castle_rights(Color color) {
-  castle_rights = previous_castle_rights[--castle_rights_size];
+  uint8_t prev_rights = previous_castle_rights[--castle_rights_size];
+  uint8_t changed = prev_rights ^ castle_rights;
+  if (changed & 0x8) zkey ^= castling_zkeys[0];
+  if (changed & 0x4) zkey ^= castling_zkeys[1];
+  if (changed & 0x2) zkey ^= castling_zkeys[2];
+  if (changed & 0x1) zkey ^= castling_zkeys[3];
+  castle_rights = prev_rights;
 }
 
 // Moves:
@@ -490,6 +606,9 @@ void Board::move_piece(Piece piece, Color color, bitboard origin, bitboard desti
 
   board_pieces[lsb(origin)] = NONE;
   board_pieces[lsb(destination)] = piece;
+
+  zkey ^= piece_square_zkeys[color][piece][lsb(origin)];
+  zkey ^= piece_square_zkeys[color][piece][lsb(destination)];
 }
 
 void Board::set_piece(Piece piece, Color color, bitboard position) {
@@ -499,6 +618,8 @@ void Board::set_piece(Piece piece, Color color, bitboard position) {
   all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
 
   board_pieces[lsb(position)] = piece;
+
+  zkey ^= piece_square_zkeys[color][piece][lsb(position)];
 }
 
 void Board::remove_piece(Piece piece, Color color, bitboard position) {
@@ -508,6 +629,7 @@ void Board::remove_piece(Piece piece, Color color, bitboard position) {
   all_piece_bitboards[piece] = piece_bitboards[WHITE][piece] | piece_bitboards[BLACK][piece];
 
   board_pieces[lsb(position)] = NONE;
+  zkey ^= piece_square_zkeys[color][piece][lsb(position)];
 }
 
 void Board::execute_castle_move(bitboard king_origin, bitboard king_destination) {

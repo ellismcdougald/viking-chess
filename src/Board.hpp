@@ -53,6 +53,7 @@ public:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);
   void set_turn_color(Color new_turn_color);
 
+
   // Board logic:
   bool is_checked(Color color);
   bool is_move_legal(Move &move, Color color);
@@ -82,12 +83,33 @@ private:
   unsigned half_moves;
   unsigned full_moves;
 
+  // Zobrist hashing:
+  uint64_t piece_square_zkeys[2][6][64]; // one key for each piece at each square;
+  uint64_t side_zkey; // one key for when side to move is black
+  uint64_t castling_zkeys[4]; // one key for each castling right
+  uint64_t en_passant_zkeys[8]; // one key for each file of an en passant square
+  void init_zobrist_keys();
+  uint64_t zkey;
+  uint64_t generate_zkey(); // generates zobrist key for the current position from scratch
+
   // Castle rights:
   uint8_t castle_rights; // uses the lower 4 bits: white king side, white queen side, black king side, black queen side
-  inline void set_king_castle_right(Color color) { castle_rights |= (0x8 >> (color << 1)); }
-  inline void set_queen_castle_right(Color color) { castle_rights |= (0x4 >> (color << 1)); }
-  inline void clear_king_castle_right(Color color) { castle_rights &= ~(0x8 >> (color << 1)); }
-  inline void clear_queen_castle_right(Color color) { castle_rights &= ~(0x4 >> (color << 1)); }
+  inline void set_king_castle_right(Color color) {
+    castle_rights |= (0x8 >> (color << 1));
+    zkey ^= castling_zkeys[color << 1];
+  }
+  inline void set_queen_castle_right(Color color) {
+    castle_rights |= (0x4 >> (color << 1));
+    zkey ^= castling_zkeys[(color << 1) + 1];
+  }
+  inline void clear_king_castle_right(Color color) {
+    castle_rights &= ~(0x8 >> (color << 1));
+    zkey ^= castling_zkeys[(color << 1)];
+  }
+  inline void clear_queen_castle_right(Color color) {
+    castle_rights &= ~(0x4 >> (color << 1));
+    zkey ^= castling_zkeys[(color << 1) + 1];
+  }
   uint8_t previous_castle_rights[512];
   size_t castle_rights_size;
 
