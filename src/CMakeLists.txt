@@ -10,7 +10,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(main main.cpp Board.cpp Move.cpp MoveGenerator.cpp MoveList.cpp Evaluation.cpp Search.cpp globals.cpp Uci.cpp Engine.cpp)
+add_executable(main main.cpp Board.cpp Move.cpp MoveGenerator.cpp MoveList.cpp Evaluation.cpp Search.cpp globals.cpp Uci.cpp Engine.cpp TTable.cpp)
 
 add_executable(perft perft.cpp Board.cpp Move.cpp MoveGenerator.cpp MoveList.cpp globals.cpp)
 

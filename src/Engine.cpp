@@ -10,6 +10,7 @@
 
 Engine::Engine() {
   time_divider = 50;
+  time_set = false;
 }
 
 bool Engine::set_position(std::string fen_string) {
@@ -34,25 +35,31 @@ bool Engine::play_move(std::string move_str) {
 void Engine::search_best_move() {
   unsigned search_time = get_time_for_move();
   //search.alpha_beta_max_root(-10000, 10000, 5, board, move_gen, eval, search_time);
-  search.negamax_root(3, board, move_gen, eval);
+  //search.negamax_root(3, board, move_gen, eval);
+  search.negamax_root_iterative_deepening(search_time, board, move_gen, eval);
   Move move = search.get_best_move();
   std::cout << "bestmove " << move.to_uci_notation() << std::endl;
 }
 
 unsigned Engine::get_time_for_move() {
-  if (moves_to_go == 0) {
-    if (board.get_turn_color() == WHITE) {
-      return white_increment + (white_time - white_time / time_divider) / time_divider;
+  if (time_set) {
+    if (moves_to_go == 0) {
+      if (board.get_turn_color() == WHITE) {
+	return white_increment + (white_time - white_time / time_divider) / time_divider;
+      } else {
+	return black_increment + (black_time - black_time / time_divider) / time_divider;
+      }
     } else {
-      return black_increment + (black_time - black_time / time_divider) / time_divider;
-    }
-  } else {
-    if (board.get_turn_color() == WHITE) {
-      return white_increment + (white_time - white_time / (moves_to_go + 3)) / (0.7 * moves_to_go + 3);
-    } else {
-      return black_increment + (black_time - black_time / (moves_to_go + 3)) / (0.7 * moves_to_go + 3);
-    }
+      if (board.get_turn_color() == WHITE) {
+	return white_increment + (white_time - white_time / (moves_to_go + 3)) / (0.7 * moves_to_go + 3);
+      } else {
+	return black_increment + (black_time - black_time / (moves_to_go + 3)) / (0.7 * moves_to_go + 3);
+      }
   }
+  } else {
+    return 3000;
+  }
+  
 }
 
 #endif // GUARD

@@ -9,6 +9,7 @@
 #include "Evaluation.hpp"
 #include "Board.hpp"
 #include "MoveList.hpp"
+#include "TTable.hpp"
 
 class Search {
 public:
@@ -31,7 +32,15 @@ private:
   // Negamax:
   int negamax(int depth, Board& board, MoveGenerator& move_gen, Evaluation& eval);
   int negamax_root(int depth, Board& board, MoveGenerator& move_gen, Evaluation &eval);
+
+  // Iterative Deepening:
+  int negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerator& move_gen, Evaluation &eval);
+  int negamax_root_iterative_deepening(unsigned time_limit, Board& board, MoveGenerator& move_gen, Evaluation &eval);
   // TODO implement iterative deepening with time management
+
+private:
+  TTable t_table;
+  unsigned nodes_evaluated;
 };
 
 #endif // GUARD

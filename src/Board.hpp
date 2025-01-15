@@ -48,6 +48,7 @@ public:
   bitboard get_blockers(bitboard position);
   inline unsigned get_half_moves() { return half_moves; }
   inline unsigned get_full_moves() { return full_moves; }
+  inline uint64_t get_zkey() { return zkey; }
 
   // Setters:
   void set_piece_positions(Piece piece, Color color, bitboard new_positions);

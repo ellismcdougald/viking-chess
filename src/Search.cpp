@@ -144,5 +144,121 @@ int Search::negamax_root(int depth, Board& board, MoveGenerator& move_gen, Evalu
   return best_score;
 }
 
+// Iterative Deepening:
+int Search::negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerator& move_gen, Evaluation &eval) {
+  if (depth == 0) {
+    ++nodes_evaluated;
+    return eval.evaluate(board);
+  }
+  
+  int previous_alpha = alpha;
+
+  // use tt if possible
+  uint64_t position_zkey = board.get_zkey();
+  TTEntry tt_entry = t_table.probe_entry(position_zkey, depth);
+  if (tt_entry.get_type() == TTEntryType::Value::EXACT) {
+    return tt_entry.get_score();
+  } else if (tt_entry.get_type() == TTEntryType::Value::UPPER && tt_entry.get_score() <= alpha) {
+    return alpha;
+  } else if (tt_entry.get_type() == TTEntryType::Value::LOWER && tt_entry.get_score() >= beta) {
+    return beta;
+  }
+
+  int best_score = -999999;
+  MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  for (int i = 0; i < moves.size(); i++) {
+    board.execute_move(moves[i]);
+    int score = -negamax_id(depth - 1, -beta, -alpha, board, move_gen, eval);
+    board.undo_move(moves[i]);
+
+    if (score >= beta) {
+      t_table.set_entry(position_zkey, depth, TTEntryType::Value::LOWER, moves[i], score);
+      return beta;
+    }
+    if (score > best_score) {
+      best_score = score;
+      best_move = moves[i];
+
+      if (score > alpha) {
+	alpha = score;
+      }
+    }
+  }
+
+  if (alpha > previous_alpha) {
+    t_table.set_entry(position_zkey, depth, TTEntryType::Value::EXACT, best_move, best_score);
+  } else {
+    t_table.set_entry(position_zkey, depth, TTEntryType::Value::UPPER, best_move, alpha);
+  }
+
+  return alpha;
+}
+
+int Search::negamax_root_iterative_deepening(unsigned time_limit, Board& board, MoveGenerator& move_gen, Evaluation &eval) {
+  unsigned search_depth = 1;
+
+  // start the clock
+  std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+  std::chrono::high_resolution_clock::time_point current_time;
+  unsigned time_passed;
+
+  nodes_evaluated = 0;
+  
+  while(true) {
+    
+    int alpha = -999999;
+    int beta = -alpha;
+    int score = 0;
+
+    uint64_t position_zkey = board.get_zkey();
+    TTEntry tt_entry = t_table.probe_entry(position_zkey, search_depth);
+
+    if (tt_entry.get_type() == TTEntryType::Value::EXACT) { // TT hit
+      best_move = tt_entry.get_best_move();
+      alpha = tt_entry.get_score();
+    } else { // TT miss
+      MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+      for (int i = 0; i < moves.size(); i++) {
+	// check the clock
+	current_time = std::chrono::high_resolution_clock::now();
+	time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
+	if (time_passed > time_limit) {
+	  return alpha;
+	}
+
+	board.execute_move(moves[i]);
+	int score = -negamax_id(search_depth - 1, -beta, -alpha, board, move_gen, eval);
+	board.undo_move(moves[i]);
+
+	if (score > alpha) {
+	  alpha = score;
+	  best_move = moves[i];
+	}
+      }
+
+      t_table.set_entry(position_zkey, search_depth, TTEntryType::Value::EXACT, best_move, alpha);
+    }
+
+    ++search_depth;
+
+    // check the clock
+    current_time = std::chrono::high_resolution_clock::now();
+    time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
+
+    // send info
+    std::cout << "info";
+    std::cout << " depth " << search_depth;
+    std::cout << " score cp " << alpha;
+    std::cout << " nodes " << nodes_evaluated;
+    std::cout << " nps " << (float) nodes_evaluated / time_passed * 1000;
+    std::cout << " time " << time_passed;
+    std::cout << std::endl;
+
+    if (time_passed > 0.5 * time_limit) {
+      return alpha;
+    }
+  }
+}
+
 
 #endif // GUARD
