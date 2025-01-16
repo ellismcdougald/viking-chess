@@ -505,6 +505,8 @@ void Board::print() {
     std::cout << std::endl << " " << separator_line << std::endl;
   }
   std::cout << "  A B C D E F G H" << std::endl;
+  std::cout << (turn_color == WHITE ? "White" : "Black") << " to move" << std::endl;
+  
 }
 
 // Zobrist Keys:

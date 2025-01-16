@@ -148,7 +148,7 @@ int Search::negamax_root(int depth, Board& board, MoveGenerator& move_gen, Evalu
 int Search::negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerator& move_gen, Evaluation &eval) {
   if (depth == 0) {
     ++nodes_evaluated;
-    return eval.evaluate(board);
+    return -eval.evaluate(board);
   }
   
   int previous_alpha = alpha;
@@ -166,6 +166,7 @@ int Search::negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerat
 
   int best_score = -999999;
   MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  Move local_best_move;
   for (int i = 0; i < moves.size(); i++) {
     board.execute_move(moves[i]);
     int score = -negamax_id(depth - 1, -beta, -alpha, board, move_gen, eval);
@@ -177,7 +178,7 @@ int Search::negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerat
     }
     if (score > best_score) {
       best_score = score;
-      best_move = moves[i];
+      local_best_move = moves[i];
 
       if (score > alpha) {
 	alpha = score;
@@ -186,9 +187,9 @@ int Search::negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerat
   }
 
   if (alpha > previous_alpha) {
-    t_table.set_entry(position_zkey, depth, TTEntryType::Value::EXACT, best_move, best_score);
+    t_table.set_entry(position_zkey, depth, TTEntryType::Value::EXACT, local_best_move, best_score);
   } else {
-    t_table.set_entry(position_zkey, depth, TTEntryType::Value::UPPER, best_move, alpha);
+    t_table.set_entry(position_zkey, depth, TTEntryType::Value::UPPER, local_best_move, alpha);
   }
 
   return alpha;
