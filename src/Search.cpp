@@ -148,7 +148,7 @@ int Search::negamax_root(int depth, Board& board, MoveGenerator& move_gen, Evalu
 int Search::negamax_id(int depth, int alpha, int beta, Board& board, MoveGenerator& move_gen, Evaluation &eval) {
   if (depth == 0) {
     ++nodes_evaluated;
-    return -eval.evaluate(board);
+    return eval.evaluate(board) * (board.get_turn_color() == WHITE ? 1 : -1);
   }
   
   int previous_alpha = alpha;
@@ -207,6 +207,9 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board& board, 
   
   while(true) {
     
+    
+    std::cout << "starting search depth " << search_depth << std::endl;
+    
     int alpha = -999999;
     int beta = -alpha;
     int score = 0;
@@ -220,24 +223,43 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board& board, 
     } else { // TT miss
       MoveList moves = move_gen.generate_legal_moves(board, board.get_turn_color());
       for (int i = 0; i < moves.size(); i++) {
+	/*
 	// check the clock
 	current_time = std::chrono::high_resolution_clock::now();
 	time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
 	if (time_passed > time_limit) {
 	  return alpha;
 	}
+	*/
 
 	board.execute_move(moves[i]);
 	int score = -negamax_id(search_depth - 1, -beta, -alpha, board, move_gen, eval);
 	board.undo_move(moves[i]);
 
+	/*
+	std::cout << "move ";
+	moves[i].print();
+	std::cout << std::endl;
+	std::cout << "score: " << score << " vs alpha " << alpha << std::endl;
+	*/
+
 	if (score > alpha) {
 	  alpha = score;
 	  best_move = moves[i];
+	  //std::cout << "new best move ";
+	  //best_move.print();
+	  //std::cout << std::endl;
 	}
       }
 
       t_table.set_entry(position_zkey, search_depth, TTEntryType::Value::EXACT, best_move, alpha);
+
+      // check the clock
+      current_time = std::chrono::high_resolution_clock::now();
+      time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
+      if (time_passed > 0.25 * time_limit) {
+	return alpha;
+      }
     }
 
     ++search_depth;
