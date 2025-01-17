@@ -1,7 +1,7 @@
 #ifndef BOARD_TESTS_CPP // GUARD
 #define BOARD_TESTS_CPP
 
-#include"iostream"
+#include "iostream"
 #include <catch2/catch_test_macros.hpp>
 
 #include "../Board.hpp"
@@ -11,21 +11,76 @@ TEST_CASE("Test board", "[board]") {
   board.initialize_board_starting_position();
 }
 
-TEST_CASE("Test string execute_move") {
-  Board board;
-  board.initialize_board_starting_position();
-
-  SECTION("d2d4") {
-    std::string move_str = "d2d4";
-    board.execute_move(move_str);
-  }
-}
-
 TEST_CASE("test inititalize_fen") {
   Board board;
 
   SECTION("starting position") {
-    board.initialize_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    board.initialize_fen(
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    REQUIRE(board.get_piece_positions(ROOK, WHITE) == 0x81);
+    REQUIRE(board.get_piece_positions(KNIGHT, WHITE) == 0x42);
+    REQUIRE(board.get_piece_positions(BISHOP, WHITE) == 0x24);
+    REQUIRE(board.get_piece_positions(QUEEN, WHITE) == 0x10);
+    REQUIRE(board.get_piece_positions(KING, WHITE) == 0x8);
+    REQUIRE(board.get_piece_positions(PAWN, WHITE) == 0xFF00);
+    REQUIRE(board.get_piece_positions(ROOK, BLACK) == 0x8100000000000000);
+    REQUIRE(board.get_piece_positions(KNIGHT, BLACK) == 0x4200000000000000);
+    REQUIRE(board.get_piece_positions(BISHOP, BLACK) == 0x2400000000000000);
+    REQUIRE(board.get_piece_positions(QUEEN, BLACK) == 0x1000000000000000);
+    REQUIRE(board.get_piece_positions(KING, BLACK) == 0x800000000000000);
+    REQUIRE(board.get_piece_positions(PAWN, BLACK) == 0x00FF000000000000);
+    for (int piece_index = 0; piece_index < 6; piece_index++) {
+      bitboard piece_bitboard =
+          board.get_all_positions_by_piece((Piece)piece_index);
+      while (piece_bitboard) {
+        REQUIRE(board.get_piece_at_position(pop_lsb(piece_bitboard), WHITE) ==
+                ((Piece)piece_index));
+      }
+    }
+    REQUIRE(board.get_turn_color() == WHITE);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
+    REQUIRE(board.is_moves_empty(WHITE) == true);
+    REQUIRE(board.is_moves_empty(BLACK) == true);
+    REQUIRE(board.get_half_moves() == 0);
+    REQUIRE(board.get_full_moves() == 1);
+  }
+
+  SECTION("after move e4") {
+    board.initialize_fen(
+        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    REQUIRE(board.get_piece_positions(ROOK, WHITE) == 0x81);
+    REQUIRE(board.get_piece_positions(KNIGHT, WHITE) == 0x42);
+    REQUIRE(board.get_piece_positions(BISHOP, WHITE) == 0x24);
+    REQUIRE(board.get_piece_positions(QUEEN, WHITE) == 0x10);
+    REQUIRE(board.get_piece_positions(KING, WHITE) == 0x8);
+    REQUIRE(board.get_piece_positions(PAWN, WHITE) == 0x800F700);
+    REQUIRE(board.get_piece_positions(ROOK, BLACK) == 0x8100000000000000);
+    REQUIRE(board.get_piece_positions(KNIGHT, BLACK) == 0x4200000000000000);
+    REQUIRE(board.get_piece_positions(BISHOP, BLACK) == 0x2400000000000000);
+    REQUIRE(board.get_piece_positions(QUEEN, BLACK) == 0x1000000000000000);
+    REQUIRE(board.get_piece_positions(KING, BLACK) == 0x800000000000000);
+    REQUIRE(board.get_piece_positions(PAWN, BLACK) == 0x00FF000000000000);
+    for (int piece_index = 0; piece_index < 6; piece_index++) {
+      bitboard piece_bitboard =
+          board.get_all_positions_by_piece((Piece)piece_index);
+      while (piece_bitboard) {
+        REQUIRE(board.get_piece_at_position(pop_lsb(piece_bitboard), WHITE) ==
+                ((Piece)piece_index));
+      }
+    }
+    REQUIRE(board.get_turn_color() == BLACK);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
+    REQUIRE(board.is_moves_empty(WHITE) == false);
+    REQUIRE(board.get_last_move(WHITE).get_flags() == 1);
+    REQUIRE(board.is_moves_empty(BLACK) == true);
+    REQUIRE(board.get_half_moves() == 0);
+    REQUIRE(board.get_full_moves() == 1);
   }
 }
 
@@ -35,15 +90,19 @@ TEST_CASE("Test set_piece_positions", "[set_piece_positions]") {
   SECTION("test one") {
     board.set_piece_positions(PAWN, WHITE, 10);
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 10);
+    REQUIRE(board.all_piece_bitboards[PAWN] == 10);
+    REQUIRE(board.piece_bitboards[WHITE][ALL] == 10);
   }
 
   SECTION("test two") {
     board.set_piece_positions(KNIGHT, BLACK, 20);
     REQUIRE(board.piece_bitboards[BLACK][KNIGHT] == 20);
+    REQUIRE(board.piece_bitboards[BLACK][ALL] == 20);
+    REQUIRE(board.all_piece_bitboards[KNIGHT] == 20);
   }
 }
 
-TEST_CASE("Test get_piece_at_posiiton", "[get_piece_at_position]") {
+TEST_CASE("Test get_piece_at_position", "[get_piece_at_position]") {
   Board board;
 
   SECTION("pawn at h1") {
@@ -53,11 +112,13 @@ TEST_CASE("Test get_piece_at_posiiton", "[get_piece_at_position]") {
 
   SECTION("pawn at d4") {
     board.set_piece_positions(PAWN, WHITE, get_position_from_row_col(4, 'd'));
-    REQUIRE(board.get_piece_at_position(get_position_from_row_col(4, 'd'), WHITE) == PAWN);
+    REQUIRE(board.get_piece_at_position(get_position_from_row_col(4, 'd'),
+                                        WHITE) == PAWN);
   }
 }
 
-TEST_CASE("Test execute_move and undo_move quiet", "[execute_move undo_move quiet]") {
+TEST_CASE("Test execute_move and undo_move quiet",
+          "[execute_move undo_move quiet]") {
   Board board;
 
   SECTION("white pawn quiet move d2 d4") {
@@ -65,20 +126,22 @@ TEST_CASE("Test execute_move and undo_move quiet", "[execute_move undo_move quie
     Move move('d', 2, 'd', 4, 0);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d4"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("d4"));
     REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
-    for(int piece_index = 1; piece_index < 6; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index ++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    for (int piece_index = 1; piece_index < 6; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
 
     board.undo_move(move);
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d2"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("d2"));
     REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
-    for(int piece_index = 1; piece_index < 6; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index ++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    for (int piece_index = 1; piece_index < 6; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
   }
@@ -90,31 +153,34 @@ TEST_CASE("Test execute_move and undo_move quiet", "[execute_move undo_move quie
 
     board.execute_move(move);
 
-    for(int piece_index = 0; piece_index < 4; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    for (int piece_index = 0; piece_index < 4; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
     REQUIRE(board.piece_bitboards[WHITE][QUEEN] == 0);
-    REQUIRE(board.piece_bitboards[BLACK][QUEEN] == position_string_to_bitboard("h8"));
+    REQUIRE(board.piece_bitboards[BLACK][QUEEN] ==
+            position_string_to_bitboard("h8"));
     REQUIRE(board.piece_bitboards[WHITE][KING] == 0);
     REQUIRE(board.piece_bitboards[BLACK][KING] == 0);
 
     board.undo_move(move);
 
-    for(int piece_index = 0; piece_index < 4; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    for (int piece_index = 0; piece_index < 4; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
     REQUIRE(board.piece_bitboards[WHITE][QUEEN] == 0);
-    REQUIRE(board.piece_bitboards[BLACK][QUEEN] == position_string_to_bitboard("a1"));
+    REQUIRE(board.piece_bitboards[BLACK][QUEEN] ==
+            position_string_to_bitboard("a1"));
     REQUIRE(board.piece_bitboards[WHITE][KING] == 0);
     REQUIRE(board.piece_bitboards[BLACK][KING] == 0);
   }
 }
 
-TEST_CASE("Test execute_move and undo_move capture", "[execute_move undo_move capture]") {
+TEST_CASE("Test execute_move and undo_move capture",
+          "[execute_move undo_move capture]") {
   Board board;
 
   SECTION("white pawn captures black pawn d4e5") {
@@ -125,21 +191,38 @@ TEST_CASE("Test execute_move and undo_move capture", "[execute_move undo_move ca
 
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("e5"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("e5"));
+    REQUIRE(board.piece_bitboards[WHITE][ALL] ==
+            position_string_to_bitboard("e5"));
     REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
-    for(int piece_index = 1; piece_index < 6; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    REQUIRE(board.piece_bitboards[BLACK][ALL] == 0);
+    for (int piece_index = 1; piece_index < 6; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
+    REQUIRE(board.all_piece_bitboards[PAWN] ==
+            position_string_to_bitboard("e5"));
 
     board.undo_move(move);
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d4"));
-    REQUIRE(board.piece_bitboards[BLACK][PAWN] == position_string_to_bitboard("e5"));
+
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("d4"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] ==
+            position_string_to_bitboard("e5"));
+    REQUIRE(board.piece_bitboards[WHITE][ALL] ==
+            position_string_to_bitboard("d4"));
+    REQUIRE(board.piece_bitboards[BLACK][ALL] ==
+            position_string_to_bitboard("e5"));
+    REQUIRE(board.all_piece_bitboards[PAWN] ==
+            (position_string_to_bitboard("d4") |
+             position_string_to_bitboard("e5")));
   }
 }
 
-TEST_CASE("Test execute_move and undo_move castle", "[execute_move undo_move castle]") {
+TEST_CASE("Test execute_move and undo_move castle",
+          "[execute_move undo_move castle]") {
   Board board;
   board.set_turn_color(BLACK);
   board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
@@ -151,13 +234,19 @@ TEST_CASE("Test execute_move and undo_move castle", "[execute_move undo_move cas
 
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("g8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("f8") | position_string_to_bitboard("a8")));
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("g8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("f8") |
+             position_string_to_bitboard("a8")));
 
     board.undo_move(move);
 
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("h8") | position_string_to_bitboard("a8")));
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("h8") |
+             position_string_to_bitboard("a8")));
   }
 
   SECTION("black castle queen side") {
@@ -165,16 +254,23 @@ TEST_CASE("Test execute_move and undo_move castle", "[execute_move undo_move cas
 
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("c8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("d8") | position_string_to_bitboard("h8")));
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("c8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("d8") |
+             position_string_to_bitboard("h8")));
 
     board.undo_move(move);
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("h8")));
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("a8") |
+             position_string_to_bitboard("h8")));
   }
 }
 
-TEST_CASE("Test execute_move and undo_move en passant", "[execute_move undo_move en passant]") {
+TEST_CASE("Test execute_move and undo_move en passant",
+          "[execute_move undo_move en passant]") {
   Board board;
 
   SECTION("white en passant capture e5d6") {
@@ -185,37 +281,41 @@ TEST_CASE("Test execute_move and undo_move en passant", "[execute_move undo_move
 
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("d6"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("d6"));
     REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
-    for(int piece_index = 1; piece_index < 6; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index ++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    for (int piece_index = 1; piece_index < 6; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
 
     board.undo_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("e5"));
-    REQUIRE(board.piece_bitboards[BLACK][PAWN] == position_string_to_bitboard("d5"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("e5"));
+    REQUIRE(board.piece_bitboards[BLACK][PAWN] ==
+            position_string_to_bitboard("d5"));
 
-    for(int piece_index = 1; piece_index < 6; piece_index++) {
-      for(int color_index = 0; color_index < 2; color_index ++) {
-	REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
+    for (int piece_index = 1; piece_index < 6; piece_index++) {
+      for (int color_index = 0; color_index < 2; color_index++) {
+        REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
       }
     }
   }
 }
 
-TEST_CASE("Test execute_move and undo_move promotion", "[execute_move undo_move promotion]") {
+TEST_CASE("Test execute_move and undo_move promotion",
+          "[execute_move undo_move promotion]") {
   Board board;
   board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
 
-  
   SECTION("no promotion (pawn promotion)") {
     Move move('a', 7, 'a', 8, 0);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a8"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("a8"));
 
     board.undo_move(move);
   }
@@ -225,7 +325,8 @@ TEST_CASE("Test execute_move and undo_move promotion", "[execute_move undo_move 
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][KNIGHT] == position_string_to_bitboard("a8"));
+    REQUIRE(board.piece_bitboards[WHITE][KNIGHT] ==
+            position_string_to_bitboard("a8"));
 
     board.undo_move(move);
   }
@@ -235,7 +336,8 @@ TEST_CASE("Test execute_move and undo_move promotion", "[execute_move undo_move 
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][BISHOP] == position_string_to_bitboard("a8"));
+    REQUIRE(board.piece_bitboards[WHITE][BISHOP] ==
+            position_string_to_bitboard("a8"));
 
     board.undo_move(move);
   }
@@ -245,7 +347,8 @@ TEST_CASE("Test execute_move and undo_move promotion", "[execute_move undo_move 
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][ROOK] == position_string_to_bitboard("a8"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] ==
+            position_string_to_bitboard("a8"));
 
     board.undo_move(move);
   }
@@ -255,21 +358,24 @@ TEST_CASE("Test execute_move and undo_move promotion", "[execute_move undo_move 
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][QUEEN] == position_string_to_bitboard("a8"));
+    REQUIRE(board.piece_bitboards[WHITE][QUEEN] ==
+            position_string_to_bitboard("a8"));
 
     board.undo_move(move);
   }
 
-  REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a7"));
+  REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+          position_string_to_bitboard("a7"));
   REQUIRE(board.piece_bitboards[BLACK][PAWN] == 0);
-  for(int piece_index = 1; piece_index < 6; piece_index++) {
-    for(int color_index = 0; color_index < 2; color_index ++) {
+  for (int piece_index = 1; piece_index < 6; piece_index++) {
+    for (int color_index = 0; color_index < 2; color_index++) {
       REQUIRE(board.piece_bitboards[color_index][piece_index] == 0);
     }
   }
 }
 
-TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move capture promotion]") {
+TEST_CASE("Test execute_move capture promotion",
+          "[execute_move undo_move capture promotion]") {
   Board board;
   board.set_piece(PAWN, WHITE, position_string_to_bitboard("a7"));
   board.set_piece(KNIGHT, BLACK, position_string_to_bitboard("b8"));
@@ -278,7 +384,8 @@ TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move captur
     Move move('a', 7, 'b', 8, 4);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("b8"));
+    REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+            position_string_to_bitboard("b8"));
 
     board.undo_move(move);
   }
@@ -288,18 +395,19 @@ TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move captur
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][KNIGHT] == position_string_to_bitboard("b8"));
+    REQUIRE(board.piece_bitboards[WHITE][KNIGHT] ==
+            position_string_to_bitboard("b8"));
 
     board.undo_move(move);
   }
 
-  
   SECTION("bishop promotion") {
     Move move('a', 7, 'b', 8, 13);
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][BISHOP] == position_string_to_bitboard("b8"));
+    REQUIRE(board.piece_bitboards[WHITE][BISHOP] ==
+            position_string_to_bitboard("b8"));
 
     board.undo_move(move);
   }
@@ -309,7 +417,8 @@ TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move captur
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][ROOK] == position_string_to_bitboard("b8"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] ==
+            position_string_to_bitboard("b8"));
 
     board.undo_move(move);
   }
@@ -319,13 +428,16 @@ TEST_CASE("Test execute_move capture promotion", "[execute_move undo_move captur
     board.execute_move(move);
 
     REQUIRE(board.piece_bitboards[WHITE][PAWN] == 0);
-    REQUIRE(board.piece_bitboards[WHITE][QUEEN] == position_string_to_bitboard("b8"));
+    REQUIRE(board.piece_bitboards[WHITE][QUEEN] ==
+            position_string_to_bitboard("b8"));
 
     board.undo_move(move);
   }
 
-  REQUIRE(board.piece_bitboards[WHITE][PAWN] == position_string_to_bitboard("a7"));
-  REQUIRE(board.piece_bitboards[BLACK][KNIGHT] == position_string_to_bitboard("b8"));
+  REQUIRE(board.piece_bitboards[WHITE][PAWN] ==
+          position_string_to_bitboard("a7"));
+  REQUIRE(board.piece_bitboards[BLACK][KNIGHT] ==
+          position_string_to_bitboard("b8"));
 }
 
 TEST_CASE("test castling and castle rights") {
@@ -338,89 +450,111 @@ TEST_CASE("test castling and castle rights") {
   board.set_piece(ROOK, BLACK, position_string_to_bitboard("h8"));
 
   SECTION("white castles king side") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
-    
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+
     Move move('e', 1, 'g', 1, 2);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("g1"));
-    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("a1") | position_string_to_bitboard("f1")));
-    REQUIRE(board.can_castle[WHITE][0] == false);
-    REQUIRE(board.can_castle[WHITE][1] == false);
+    REQUIRE(board.piece_bitboards[WHITE][KING] ==
+            position_string_to_bitboard("g1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] ==
+            (position_string_to_bitboard("a1") |
+             position_string_to_bitboard("f1")));
+    REQUIRE(board.get_can_castle_king(WHITE) == false);
+    REQUIRE(board.get_can_castle_queen(WHITE) == false);
 
     board.undo_move(move);
-    
-    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("e1"));
-    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("a1") | position_string_to_bitboard("h1")));
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+
+    REQUIRE(board.piece_bitboards[WHITE][KING] ==
+            position_string_to_bitboard("e1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] ==
+            (position_string_to_bitboard("a1") |
+             position_string_to_bitboard("h1")));
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
   }
 
   SECTION("white castles queen side") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
-    
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+
     Move move('e', 1, 'c', 1, 3);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("c1"));
-    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("d1") | position_string_to_bitboard("h1")));
-    REQUIRE(board.can_castle[WHITE][0] == false);
-    REQUIRE(board.can_castle[WHITE][1] == false);
+    REQUIRE(board.piece_bitboards[WHITE][KING] ==
+            position_string_to_bitboard("c1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] ==
+            (position_string_to_bitboard("d1") |
+             position_string_to_bitboard("h1")));
+    REQUIRE(board.get_can_castle_king(WHITE) == false);
+    REQUIRE(board.get_can_castle_queen(WHITE) == false);
 
     board.undo_move(move);
-    
-    REQUIRE(board.piece_bitboards[WHITE][KING] == position_string_to_bitboard("e1"));
-    REQUIRE(board.piece_bitboards[WHITE][ROOK] == (position_string_to_bitboard("a1") | position_string_to_bitboard("h1")));
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+
+    REQUIRE(board.piece_bitboards[WHITE][KING] ==
+            position_string_to_bitboard("e1"));
+    REQUIRE(board.piece_bitboards[WHITE][ROOK] ==
+            (position_string_to_bitboard("a1") |
+             position_string_to_bitboard("h1")));
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
   }
 
   board.set_turn_color(BLACK);
 
   SECTION("black castles king side") {
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == true);
-    
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
+
     Move move('e', 8, 'g', 8, 2);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("g8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("f8")));
-    REQUIRE(board.can_castle[BLACK][0] == false);
-    REQUIRE(board.can_castle[BLACK][1] == false);
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("g8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("a8") |
+             position_string_to_bitboard("f8")));
+    REQUIRE(board.get_can_castle_king(BLACK) == false);
+    REQUIRE(board.get_can_castle_queen(BLACK) == false);
 
     board.undo_move(move);
-    
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("h8")));
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == true);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("a8") |
+             position_string_to_bitboard("h8")));
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
   }
 
-  
   SECTION("black castles queen side") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
-    
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
+
     Move move('e', 8, 'c', 8, 3);
     board.execute_move(move);
 
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("c8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("d8") | position_string_to_bitboard("h8")));
-    REQUIRE(board.can_castle[BLACK][0] == false);
-    REQUIRE(board.can_castle[BLACK][1] == false);
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("c8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("d8") |
+             position_string_to_bitboard("h8")));
+    REQUIRE(board.get_can_castle_king(BLACK) == false);
+    REQUIRE(board.get_can_castle_queen(BLACK) == false);
 
     board.undo_move(move);
-    
-    REQUIRE(board.piece_bitboards[BLACK][KING] == position_string_to_bitboard("e8"));
-    REQUIRE(board.piece_bitboards[BLACK][ROOK] == (position_string_to_bitboard("a8") | position_string_to_bitboard("h8")));
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == true);
+
+    REQUIRE(board.piece_bitboards[BLACK][KING] ==
+            position_string_to_bitboard("e8"));
+    REQUIRE(board.piece_bitboards[BLACK][ROOK] ==
+            (position_string_to_bitboard("a8") |
+             position_string_to_bitboard("h8")));
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
   }
 }
-
 
 TEST_CASE("test castle rights on non-castle moves") {
   Board board;
@@ -430,88 +564,88 @@ TEST_CASE("test castle rights on non-castle moves") {
   board.set_piece(KING, BLACK, position_string_to_bitboard("e8"));
   board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
   board.set_piece(ROOK, BLACK, position_string_to_bitboard("h8"));
-  
+
   board.set_piece(ROOK, WHITE, position_string_to_bitboard("a2"));
 
   SECTION("white non-castle king move removes both castle rights") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
 
     Move move('e', 1, 'd', 1, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[WHITE][0] == false);
-    REQUIRE(board.can_castle[WHITE][1] == false);
+    REQUIRE(board.get_can_castle_king(WHITE) == false);
+    REQUIRE(board.get_can_castle_queen(WHITE) == false);
   }
 
   SECTION("white queen side rook move removes queen side castle right") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
 
     Move move('a', 1, 'b', 1, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == false);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == false);
   }
 
   SECTION("white king side rook moves removes king side castle right") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
 
     Move move('h', 1, 'h', 2, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[WHITE][0] == false);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+    REQUIRE(board.get_can_castle_king(WHITE) == false);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
   }
 
   board.set_turn_color(BLACK);
 
   SECTION("black non-castle king move removes both castle rights") {
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
 
     Move move('e', 8, 'd', 8, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[BLACK][0] == false);
-    REQUIRE(board.can_castle[BLACK][1] == false);
+    REQUIRE(board.get_can_castle_king(BLACK) == false);
+    REQUIRE(board.get_can_castle_queen(BLACK) == false);
   }
-  
+
   SECTION("white queen side rook move removes queen side castle right") {
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
 
     Move move('a', 8, 'b', 8, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == false);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == false);
   }
-  
+
   SECTION("white king side rook moves removes king side castle right") {
-    REQUIRE(board.can_castle[BLACK][0] == true);
-    REQUIRE(board.can_castle[BLACK][1] == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == true);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
 
     Move move('h', 8, 'h', 7, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[BLACK][0] == false);
-    REQUIRE(board.can_castle[BLACK][1] == true);
+    REQUIRE(board.get_can_castle_king(BLACK) == false);
+    REQUIRE(board.get_can_castle_queen(BLACK) == true);
   }
 
   board.set_turn_color(WHITE);
-  
+
   SECTION("pawn move does not affect castle rights") {
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
 
     Move move('a', 2, 'a', 3, 0);
     board.execute_move(move);
 
-    REQUIRE(board.can_castle[WHITE][0] == true);
-    REQUIRE(board.can_castle[WHITE][1] == true);
+    REQUIRE(board.get_can_castle_king(WHITE) == true);
+    REQUIRE(board.get_can_castle_queen(WHITE) == true);
   }
 }
 
@@ -521,31 +655,32 @@ TEST_CASE("test is_position_attacked_by") {
   board.set_piece(ROOK, BLACK, position_string_to_bitboard("a8"));
 
   SECTION("a8 is attacked by white") {
-    bool result = board.is_position_attacked_by(position_string_to_bitboard("a8"), WHITE);
+    bool result =
+        board.is_position_attacked_by(position_string_to_bitboard("a8"), WHITE);
     bool expected = true;
     REQUIRE(result == expected);
   }
 
-  
-
   SECTION("b8 is not attacked by white") {
-    bool result = board.is_position_attacked_by(position_string_to_bitboard("b8"), WHITE);
+    bool result =
+        board.is_position_attacked_by(position_string_to_bitboard("b8"), WHITE);
     bool expected = false;
     REQUIRE(result == expected);
   }
 
   SECTION("a1 is attacked by black") {
-    bool result = board.is_position_attacked_by(position_string_to_bitboard("a1"), BLACK);
+    bool result =
+        board.is_position_attacked_by(position_string_to_bitboard("a1"), BLACK);
     bool expected = true;
     REQUIRE(result == expected);
   }
 
   SECTION("b1 is not attacked by black") {
-    bool result = board.is_position_attacked_by(position_string_to_bitboard("b1"), BLACK);
+    bool result =
+        board.is_position_attacked_by(position_string_to_bitboard("b1"), BLACK);
     bool expected = false;
     REQUIRE(result == expected);
   }
-  
 }
 
 TEST_CASE("test is_checked") {
@@ -592,12 +727,13 @@ TEST_CASE("test get_sliding_attacks") {
   }
 
   SECTION("test northeast from f1") {
-    bitboard actual = board.generate_sliding_attacks(position_string_to_bitboard("f1"), NORTHEAST, board.get_blockers(position_string_to_bitboard("f1")));
+    bitboard actual = board.generate_sliding_attacks(
+        position_string_to_bitboard("f1"), NORTHEAST,
+        board.get_blockers(position_string_to_bitboard("f1")));
     bitboard expected = 0x10200;
     REQUIRE(actual == expected);
   }
 }
-
 
 TEST_CASE("test is_move_legal") {
   Board board;
@@ -607,7 +743,6 @@ TEST_CASE("test is_move_legal") {
   board.set_piece(BISHOP, BLACK, position_string_to_bitboard("b4"));
   board.set_piece(ROOK, BLACK, position_string_to_bitboard("d8"));
 
-  
   SECTION("rook move legal") {
     Move move('h', 1, 'h', 8, 0);
     REQUIRE(board.is_move_legal(move, WHITE) == true);
@@ -617,7 +752,7 @@ TEST_CASE("test is_move_legal") {
     Move move('e', 1, 'f', 1, 0);
     REQUIRE(board.is_move_legal(move, WHITE) == true);
   }
-  
+
   SECTION("king move left illegal") {
     Move move('e', 1, 'd', 1, 0);
     REQUIRE(board.is_move_legal(move, WHITE) == false);

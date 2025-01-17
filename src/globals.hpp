@@ -1,17 +1,32 @@
 #ifndef GLOBALS_HPP
 #define GLOBALS_HPP
 
-#include <stdint.h>
 #include <iostream>
+#include <stdint.h>
 #include <string>
 
 typedef uint64_t bitboard;
 
-enum Piece {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE};
-enum Color {WHITE, BLACK};
-enum Direction {NORTH, EAST, SOUTH, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST};
+enum Piece { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, ALL, NONE };
+enum Color { WHITE, BLACK };
+enum Direction {
+  NORTH,
+  EAST,
+  SOUTH,
+  WEST,
+  NORTHEAST,
+  NORTHWEST,
+  SOUTHEAST,
+  SOUTHWEST
+};
 
 static const bitboard FILE_A = 0x8080808080808080;
+static const bitboard FILE_B = 0x4040404040404040;
+static const bitboard FILE_C = 0x2020202020202020;
+static const bitboard FILE_D = 0x1010101010101010;
+static const bitboard FILE_E = 0x0808080808080808;
+static const bitboard FILE_F = 0x0404040404040404;
+static const bitboard FILE_G = 0x0202020202020202;
 static const bitboard FILE_H = 0x0101010101010101;
 static const bitboard RANK_1 = 0xFF;
 static const bitboard RANK_2 = 0x00FF;
@@ -42,10 +57,21 @@ inline bitboard south(bitboard position) { return (position & ~RANK_1) >> 8; }
 inline bitboard east(bitboard position) { return (position & ~FILE_H) >> 1; }
 inline bitboard west(bitboard position) { return (position & ~FILE_A) << 1; }
 
-inline Color negate_color(Color color) { return (color == WHITE ? BLACK : WHITE); }
+inline Color negate_color(Color color) { return (Color)(color ^ 1); }
 
 uint64_t get_position_from_row_col(uint8_t row, uint8_t col);
 void print_bitboard(bitboard bb);
 bitboard position_string_to_bitboard(std::string position_str);
+
+// https://chessprogramming.wikispaces.com/Population+Count
+inline unsigned popcount(bitboard bb) { return __builtin_popcount(bb); }
+
+inline int lsb(bitboard bb) { return __builtin_ctzl(bb); }
+
+inline bitboard pop_lsb(bitboard &bb) {
+  bitboard square = ((uint64_t)1) << __builtin_ctzl(bb);
+  bb &= bb - 1;
+  return square;
+}
 
 #endif
