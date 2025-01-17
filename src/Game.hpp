@@ -28,7 +28,7 @@ private:
 
   std::array<std::string, 2> colors;
 
-  Move get_move_from_str(std::string move_str, std::vector<Move>& legal_moves);
+  Move get_move_from_str(std::string move_str, MoveList& legal_moves);
 };
 
 #endif

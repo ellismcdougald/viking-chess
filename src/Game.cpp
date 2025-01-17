@@ -32,7 +32,7 @@ bool Game::make_turn_user() {
   std::cout << colors[board.get_turn_color()] << ": It is your turn.\n";
   board.print();
   
-  std::vector<Move> legal_moves = move_gen.generate_legal_moves(board, board.get_turn_color());
+  MoveList legal_moves = move_gen.generate_legal_moves(board, board.get_turn_color());
   if(legal_moves.size() == 0) {
     std::cout << "no legal moves\n";
     return false;
@@ -70,7 +70,7 @@ bool Game::make_turn_engine() {
   return true;
 }
 
-Move Game::get_move_from_str(std::string move_str, std::vector<Move>& legal_moves) {
+Move Game::get_move_from_str(std::string move_str, MoveList& legal_moves) {
   for(int i = 0; i < legal_moves.size(); i++) {
     if(move_str == legal_moves[i].to_uci_notation()) return legal_moves[i];
   }
