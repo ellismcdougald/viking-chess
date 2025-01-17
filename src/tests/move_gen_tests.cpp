@@ -1,7 +1,7 @@
 #ifndef MOVE_GEN_TESTS_CPP // GUARD
 #define MOVE_GEN_TESTS_CPP // GUARD
 
-#include"iostream"
+#include "iostream"
 #include <catch2/catch_test_macros.hpp>
 
 #include "../MoveGenerator.hpp"
@@ -54,7 +54,8 @@ TEST_CASE("test pawn move gneration") {
     board.set_piece(PAWN, BLACK, position_string_to_bitboard("e5"));
 
     MoveList white_pawn_pseudo_legal_moves;
-    move_gen.add_pseudo_legal_pawn_moves(board, WHITE, white_pawn_pseudo_legal_moves);
+    move_gen.add_pseudo_legal_pawn_moves(board, WHITE,
+                                         white_pawn_pseudo_legal_moves);
 
     REQUIRE(white_pawn_pseudo_legal_moves.size() == 2);
     Move move_one('d', 4, 'e', 5, 4);
@@ -63,7 +64,8 @@ TEST_CASE("test pawn move gneration") {
     REQUIRE(move_vec_contains(white_pawn_pseudo_legal_moves, move_two));
 
     MoveList black_pawn_pseudo_legal_moves;
-    move_gen.add_pseudo_legal_pawn_moves(board, BLACK, black_pawn_pseudo_legal_moves);
+    move_gen.add_pseudo_legal_pawn_moves(board, BLACK,
+                                         black_pawn_pseudo_legal_moves);
 
     REQUIRE(black_pawn_pseudo_legal_moves.size() == 2);
     Move move_three('d', 5, 'e', 4, 4);
@@ -82,7 +84,8 @@ TEST_CASE("test en passant generation") {
     board.set_piece(PAWN, WHITE, position_string_to_bitboard("e4"));
 
     MoveList ep_pseudo_legal_moves;
-    move_gen.add_pseudo_legal_en_passant_moves(board, WHITE, ep_pseudo_legal_moves);
+    move_gen.add_pseudo_legal_en_passant_moves(board, WHITE,
+                                               ep_pseudo_legal_moves);
 
     REQUIRE(ep_pseudo_legal_moves.size() == 0);
   }
@@ -96,7 +99,8 @@ TEST_CASE("test en passant generation") {
     board.execute_move(move);
 
     MoveList ep_pseudo_legal_moves;
-    move_gen.add_pseudo_legal_en_passant_moves(board, WHITE, ep_pseudo_legal_moves);
+    move_gen.add_pseudo_legal_en_passant_moves(board, WHITE,
+                                               ep_pseudo_legal_moves);
 
     REQUIRE(ep_pseudo_legal_moves.size() == 0);
   }
@@ -114,7 +118,8 @@ TEST_CASE("test en passant generation") {
     board.execute_move(move_three);
 
     MoveList ep_pseudo_legal_moves;
-    move_gen.add_pseudo_legal_en_passant_moves(board, BLACK, ep_pseudo_legal_moves);
+    move_gen.add_pseudo_legal_en_passant_moves(board, BLACK,
+                                               ep_pseudo_legal_moves);
 
     REQUIRE(ep_pseudo_legal_moves.size() == 1);
     Move exp_move('d', 4, 'e', 3, 5);
@@ -188,7 +193,9 @@ TEST_CASE("knight move gen") {
 // Helpers:
 bool move_vec_contains(MoveList &moves, Move &move) {
   for (int i = 0; i < moves.size(); i++) {
-    if (moves[i].move_equals(move)) return true;
+    if (moves[i].move_equals(move)) {
+      return true;
+    }
   }
   return false;
 }
