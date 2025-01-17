@@ -285,7 +285,7 @@ uint64_t MoveGenerator::pl_perft(int depth, Board& board) {
   int num_moves = pseudo_legal_moves.size();
   uint64_t nodes = 0;
 
-  for (int i = 0; i < pseudo_legal_moves.size(); i++) {
+  for (int i = 0; i < num_moves; i++) {
     board.execute_move(pseudo_legal_moves[i]);
     if (!board.is_checked(negate_color(board.get_turn_color()))) {
       nodes += pl_perft(depth - 1, board);

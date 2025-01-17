@@ -6,6 +6,7 @@
 #include <bit>
 #include <bitset>
 #include <random>
+#include <assert.h>
 #include "Board.hpp"
 #include "Move.hpp"
 #include "globals.hpp"
