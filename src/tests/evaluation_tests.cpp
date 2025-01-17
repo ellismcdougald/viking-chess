@@ -20,6 +20,14 @@ TEST_CASE("Test") {
     int result = eval.evaluate(board);
     REQUIRE(result == 0);
   }
+
+  SECTION("pawns only") {
+    board.set_piece_positions(PAWN, WHITE, 0xFF00);
+    REQUIRE(eval.evaluate(board) == 810);
+
+    board.set_piece_positions(PAWN, WHITE, 0xEF00);
+    REQUIRE(eval.evaluate(board) == 730);
+  }
 }
 
 #endif
