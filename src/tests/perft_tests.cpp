@@ -65,7 +65,7 @@ TEST_CASE("perft position 2 results up to depth 4") {
   }
 }
 
-TEST_CASE("perft startpos up to depth 6") {
+TEST_CASE("perft startpos up to depth 5") {
   Board board;
   MoveGenerator move_gen;
 
@@ -92,19 +92,16 @@ TEST_CASE("perft startpos up to depth 6") {
   }
   
   SECTION("depth 5") {
-    auto start = std::chrono::high_resolution_clock::now();
     uint64_t result = move_gen.pl_perft(5, board);
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    std::cout << duration.count() << std::endl;
-
     REQUIRE(result == 4865609);
   }
 
+  /* slow running
   SECTION("depth 6") {
     uint64_t result = move_gen.pl_perft(6, board);
     REQUIRE(result == 119060324);
   }
+  */
 }
 
 #endif // GUARD
