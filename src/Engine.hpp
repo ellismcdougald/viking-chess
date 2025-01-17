@@ -3,9 +3,9 @@
  */
 
 #include "Board.hpp"
+#include "Evaluation.hpp"
 #include "MoveGenerator.hpp"
 #include "Search.hpp"
-#include "Evaluation.hpp"
 
 #ifndef ENGINE_HPP // GUARD
 #define ENGINE_HPP // GUARD
@@ -36,19 +36,31 @@ public:
    */
   void search_best_move();
 
-
   inline void show_board() { board.print(); }
 
   unsigned get_time_for_move();
-    
-
 
   // Setters:
-  inline void set_white_time(unsigned wtime) { white_time = wtime; time_set = true; }
-  inline void set_black_time(unsigned btime) { black_time = btime; time_set = true; }
-  inline void set_white_increment(unsigned winc) { white_increment = winc; time_set = true; }
-  inline void set_black_increment(unsigned binc) { black_increment = binc; time_set = true; }
-  inline void set_moves_to_go(unsigned movestogo) { moves_to_go = movestogo; time_set = true; }
+  inline void set_white_time(unsigned wtime) {
+    white_time = wtime;
+    time_set = true;
+  }
+  inline void set_black_time(unsigned btime) {
+    black_time = btime;
+    time_set = true;
+  }
+  inline void set_white_increment(unsigned winc) {
+    white_increment = winc;
+    time_set = true;
+  }
+  inline void set_black_increment(unsigned binc) {
+    black_increment = binc;
+    time_set = true;
+  }
+  inline void set_moves_to_go(unsigned movestogo) {
+    moves_to_go = movestogo;
+    time_set = true;
+  }
 
 private:
   Board board;

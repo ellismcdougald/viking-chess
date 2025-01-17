@@ -6,12 +6,15 @@
 #define MOVE_CPP // GUARD
 
 #include "Move.hpp"
-#include"iostream"
+#include "iostream"
 
 // Constructor:
-Move::Move(char origin_column, uint8_t origin_row, char dest_column, char dest_row, char flag) {
-  bitboard origin = get_position_from_row_col(origin_row - 1, origin_column - 97);
-  bitboard destination = get_position_from_row_col(dest_row - 1, dest_column - 97);
+Move::Move(char origin_column, uint8_t origin_row, char dest_column,
+           char dest_row, char flag) {
+  bitboard origin =
+      get_position_from_row_col(origin_row - 1, origin_column - 97);
+  bitboard destination =
+      get_position_from_row_col(dest_row - 1, dest_column - 97);
   set_origin(origin);
   set_destination(destination);
   set_flag(flag);
@@ -26,13 +29,9 @@ Move::Move(bitboard origin, bitboard destination, char flag) {
 Move::Move() {}
 
 // Getters:
-bool Move::is_double_pawn_push() {
-  return get_flags() == 1;
-}
+bool Move::is_double_pawn_push() { return get_flags() == 1; }
 
-bool Move::is_null() {
-  return get_origin() == get_destination();
-}
+bool Move::is_null() { return get_origin() == get_destination(); }
 
 // Setters:
 void Move::set_origin_column(char origin_column) {
@@ -60,26 +59,32 @@ void Move::set_dest_row(char dest_row) {
 
 // Printers:
 void Move::print_binary(uint16_t move_rep) {
-  for(uint16_t mask = 0x8000; mask > 0; mask >>= 1) {
+  for (uint16_t mask = 0x8000; mask > 0; mask >>= 1) {
     std::cout << ((move_rep & mask) ? '1' : '0');
   }
   std::cout << "\n";
 }
 
 void Move::print() {
-  if(is_null()) std::cout << "Null";
-  else std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination());
+  if (is_null()) {
+    std::cout << "Null";
+  } else {
+    std::cout << get_row_col_from_position(get_origin())
+              << get_row_col_from_position(get_destination());
+  }
 }
 
 void Move::print_full() {
-  std::cout << get_row_col_from_position(get_origin()) << get_row_col_from_position(get_destination()) << " -- " << get_flags() << "\n";
+  std::cout << get_row_col_from_position(get_origin())
+            << get_row_col_from_position(get_destination()) << " -- "
+            << get_flags() << "\n";
 }
 
 // To String:
 std::string Move::to_uci_notation() {
   std::string move_str = get_row_col_from_position(get_origin());
   move_str.append(get_row_col_from_position(get_destination()));
-  switch(get_flags()) {
+  switch (get_flags()) {
   case 8:
     move_str.append("n");
     break;
@@ -117,14 +122,14 @@ bool Move::move_equals(Move &other_move) {
 bitboard Move::get_position_from_row_col(uint8_t row, uint8_t col) {
   bitboard position = 1;
 
-  for(char row_index = 0; row_index < row; row_index++) {
+  for (char row_index = 0; row_index < row; row_index++) {
     position <<= 8;
   }
-  
-  for(char col_index = 7; col_index > col; col_index--) {
+
+  for (char col_index = 7; col_index > col; col_index--) {
     position <<= 1;
   }
-  
+
   return position;
 }
 
@@ -132,12 +137,12 @@ std::string Move::get_row_col_from_position(bitboard position) {
   std::array<char, 8> letters = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
   std::string row_col = "00";
   bitboard mask = 1;
-  for(int row = 0; row <= 7; row++) {
-    for(int col = 7; col >= 0; col--) {
-      if(mask & position) {
-	row_col[0] = col + 'a';
-	row_col[1] = row + '1';
-	return row_col;
+  for (int row = 0; row <= 7; row++) {
+    for (int col = 7; col >= 0; col--) {
+      if (mask & position) {
+        row_col[0] = col + 'a';
+        row_col[1] = row + '1';
+        return row_col;
       }
       mask <<= 1;
     }

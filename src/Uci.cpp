@@ -26,35 +26,42 @@ void Uci::loop() {
       std::cout << "id author Ellis McDougald" << std::endl;
       // TODO: optional options
       std::cout << "uciok" << std::endl;
-    } else if(token == "isready") {
+    } else if (token == "isready") {
       std::cout << "readyok" << std::endl;
     } else if (token == "position") {
       input >> token;
       if (token == "startpos") {
-	std::string start_pos_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	engine.set_position(start_pos_fen);
+        std::string start_pos_fen =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        engine.set_position(start_pos_fen);
       } else if (token == "fen") {
-	input >> token;
-	engine.set_position(token);
+        input >> token;
+        engine.set_position(token);
       }
 
       input >> token;
-      if(token == "moves") {
-	while(input >> token) {
-	  engine.play_move(token);
-	}
+      if (token == "moves") {
+        while (input >> token) {
+          engine.play_move(token);
+        }
       }
     } else if (token == "show") {
       engine.show_board();
     } else if (token == "go") {
       unsigned val;
       while (input >> token) {
-	input >> val;
-	if (token == "wtime") engine.set_white_time(val);
-	else if (token == "btime") engine.set_black_time(val);
-	else if (token == "winc") engine.set_white_increment(val);
-	else if (token == "binc") engine.set_black_increment(val);
-	else if (token == "movestogo") engine.set_moves_to_go(val);
+        input >> val;
+        if (token == "wtime") {
+          engine.set_white_time(val);
+        } else if (token == "btime") {
+          engine.set_black_time(val);
+        } else if (token == "winc") {
+          engine.set_white_increment(val);
+        } else if (token == "binc") {
+          engine.set_black_increment(val);
+        } else if (token == "movestogo") {
+          engine.set_moves_to_go(val);
+        }
       }
       // start search on another thread
       std::thread search_thread([this]() { search(); });
