@@ -174,14 +174,14 @@ int Search::negamax_root(int depth, Board &board, MoveGenerator &move_gen,
 int Search::negamax_id(int depth, int alpha, int beta, Board &board,
                        MoveGenerator &move_gen, Evaluation &eval) {
   if (depth == 0) {
-    ++nodes_evaluated;
+    //++nodes_evaluated;
     return eval.evaluate(board) * (board.get_turn_color() == WHITE ? 1 : -1);
   }
 
   int previous_alpha = alpha;
 
-  // use tt if possible
   uint64_t position_zkey = board.get_zkey();
+  // use tt if possible
   TTEntry tt_entry = t_table.probe_entry(position_zkey, depth);
   if (tt_entry.get_type() == TTEntryType::Value::EXACT) {
     return tt_entry.get_score();
@@ -198,8 +198,11 @@ int Search::negamax_id(int depth, int alpha, int beta, Board &board,
   Move local_best_move;
   for (int i = 0; i < moves.size(); i++) {
     board.execute_move(moves[i]);
+    ++nodes_evaluated;
+    ++current_ply;
     int score = -negamax_id(depth - 1, -beta, -alpha, board, move_gen, eval);
     board.undo_move(moves[i]);
+    --current_ply;
 
     if (score >= beta) {
       t_table.set_entry(position_zkey, depth, TTEntryType::Value::LOWER,
@@ -212,6 +215,7 @@ int Search::negamax_id(int depth, int alpha, int beta, Board &board,
 
       if (score > alpha) {
         alpha = score;
+	pv_table.add_move(current_ply, local_best_move);
       }
     }
   }
@@ -231,6 +235,7 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board &board,
                                              MoveGenerator &move_gen,
                                              Evaluation &eval) {
   unsigned search_depth = 1;
+  current_ply = 0;
 
   // start the clock
   std::chrono::high_resolution_clock::time_point start_time =
@@ -244,7 +249,7 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board &board,
     int alpha = -999999;
     int beta = -alpha;
     int score = 0;
-
+    
     uint64_t position_zkey = board.get_zkey();
     TTEntry tt_entry = t_table.probe_entry(position_zkey, search_depth);
 
@@ -256,13 +261,16 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board &board,
           move_gen.generate_legal_moves(board, board.get_turn_color());
       for (int i = 0; i < moves.size(); i++) {
         board.execute_move(moves[i]);
+	++nodes_evaluated;
+	++current_ply;
         int score =
             -negamax_id(search_depth - 1, -beta, -alpha, board, move_gen, eval);
         board.undo_move(moves[i]);
-
+	--current_ply;
         if (score > alpha) {
           alpha = score;
           best_move = moves[i];
+	  pv_table.add_move(current_ply, best_move);
         }
       }
 
@@ -279,8 +287,6 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board &board,
       }
     }
 
-    ++search_depth;
-
     // check the clock
     current_time = std::chrono::high_resolution_clock::now();
     time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -294,7 +300,11 @@ int Search::negamax_root_iterative_deepening(unsigned time_limit, Board &board,
     std::cout << " nodes " << nodes_evaluated;
     std::cout << " nps " << (float)nodes_evaluated / time_passed * 1000;
     std::cout << " time " << time_passed;
+    std::cout << " pv ";
+    pv_table.print_pv();
     std::cout << std::endl;
+
+    ++search_depth;
 
     if (time_passed > 0.5 * time_limit) {
       return alpha;
