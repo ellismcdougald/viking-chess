@@ -10,6 +10,7 @@
 #include "MoveGenerator.hpp"
 #include "MoveList.hpp"
 #include "TTable.hpp"
+#include "PVTable.hpp"
 
 class Search {
 public:
@@ -46,9 +47,12 @@ public:
                                        Evaluation &eval);
   // TODO implement iterative deepening with time management
 private:
+  unsigned current_ply;
+  unsigned nodes_evaluated;
+  
   Move best_move;
   TTable t_table;
-  unsigned nodes_evaluated;
+  PVTable pv_table;
 };
 
 #endif // GUARD
